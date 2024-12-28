@@ -1,0 +1,37 @@
+﻿@model Hotel.Areas.RestaurantManagement.ViewModels.CategoriesListingModel
+
+@if (Model != null && Model.Categories.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Model.Categories)
+            {
+                <tr>
+                    <td>@category.Name</td>
+                    <td>@category.Description</td>
+                    <td>
+                        <button data-href="@Url.Action("Action", "Category", new { area = "RestaurantManagement", ID = category.ID })"
+                                class="edit-btn btn btn-primary">
+                            Edit
+                        </button>
+                        <button data-href="@Url.Action("Delete", "Category", new { area = "RestaurantManagement", ID = category.ID })"
+                                class="delete-btn btn btn-danger">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No categories found.</div>
+}

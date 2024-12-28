@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hotel</title>
+    <!-- Bootstrap CSS (tylko jedna wersja!) -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- FontAwesome Icons -->
+    <script src="https://kit.fontawesome.com/6a68d8c294.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-light border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <i class="fa-solid fa-hotel mr-1"></i> Hotel Paradise
+            </div>
+            <div class="list-group list-group-flush">
+                <!-- Istniejące linki -->
+                <a href="@Url.Action("Index", "AccommodationTypes", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-building"></i> Accommodation Types
+                </a>
+                <a href="@Url.Action("Index", "AccommodationPackages", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fas fa-project-diagram"></i> Accommodation Packages
+                </a>
+                <a href="@Url.Action("Index", "Accommodations", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fas fa-map-pin mr-1"></i> Accommodations
+                </a>
+                <a href="@Url.Action("Index", "Bookings", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-book mr-1"></i> Rezerwacje
+                </a>
+                <!-- Pozostałe linki -->
+                <a href="@Url.Action("Index", "Roles", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-users-gear mr-1"></i> Roles
+                </a>
+                <a href="@Url.Action("Index", "Users", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-users mr-1"></i> Users
+                </a>
+                <!-- Restaurant Management Links -->
+                <a href="@Url.Action("Index", "Categories", new { area = "RestaurantManagement" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-list mr-1"></i> Categories
+                </a>
+                <a href="@Url.Action("Index", "Dishes", new { area = "RestaurantManagement" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-utensils mr-1"></i> Dishes
+                </a>
+                <a href="@Url.Action("Index", "TableReservations", new { area = "RestaurantManagement" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-chair mr-1"></i> Table Reservations
+                </a>
+                <a href="@Url.Action("Index", "Orders", new { area = "RestaurantManagement" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-file-invoice mr-1"></i> Orders
+                </a>
+                <a href="@Url.Action("Index", "RoomsList", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+    <i class="fa-solid fa-bed mr-1"></i> Lista Pokoi
+</a>
+
+            </div>
+        </div>
+
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="btn btn-primary me-2" id="sidebarToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardNavBar"
+                        aria-controls="dashboardNavBar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="dashboardNavBar">
+                    <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                            <div class="collapse navbar-collapse" id="dashboardNavBar">
+                                <ul class="navbar-nav ms-auto">
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="/Identity/Account/Manage">
+                                                <i class="fa fa-user"></i> Witaj, @User.Identity.Name!
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <form method="post" action="/Identity/Account/Logout">
+                                                <button class="btn btn-link nav-link">Wyloguj</button>
+                                            </form>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="nav-item">
+                                            <a class="btn btn-primary" href="/Identity/Account/Login">Zaloguj</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="btn btn-success ms-2" href="/Identity/Account/Register">Zarejestruj</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+
+
+                        </ul>
+
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="container-fluid mt-4">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-K+ctZQ5PVuvTQ6gxKNzSvMJdjH8ZH0bnyTZGxi1vEHA="
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+3FjCkq6Hcg6X6CSmX65gJ1t5j2+"
+        crossorigin="anonymous"></script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleSidebar = document.getElementById("sidebarToggle");
+            const sidebar = document.getElementById("sidebar-wrapper");
+
+            if (toggleSidebar && sidebar) {
+                toggleSidebar.addEventListener("click", function () {
+                    sidebar.classList.toggle("d-none");
+                });
+            }
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

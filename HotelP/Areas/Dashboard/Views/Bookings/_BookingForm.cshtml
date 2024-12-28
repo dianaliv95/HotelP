@@ -1,0 +1,170 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.BookingActionModel
+@using HMS.Entities
+
+<div class="modal-header">
+    <h5 class="modal-title">@(Model.ID > 0 ? "Edytuj Rezerwację" : "Dodaj Rezerwację")</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <form id="bookingForm" method="post"
+          action="@Url.Action("CreateOrEdit", "Bookings", new { area = "Dashboard" })">
+        @Html.AntiForgeryToken()
+
+        <!-- Ukryte pola ID i ReservationNumber -->
+        <input type="hidden" name="ID" value="@Model.ID" />
+        <input type="hidden" name="ReservationNumber" value="@Model.ReservationNumber" />
+
+        <!-- Wybór pokoju -->
+        <div class="mb-3">
+            <label class="form-label">Pokój</label>
+            <select class="form-select" name="RoomID" id="roomSelect" required>
+                <option value="">-- Wybierz Pokój --</option>
+                @foreach (var r in Model.Rooms)
+                {
+                    <option value="@r.ID"
+                            data-price="@r.PricePerNight"
+                            data-maxadults="@((r.Accommodation?.MaxAdults) ?? 0)"
+                            data-maxchildren="@((r.Accommodation?.MaxChildren) ?? 0)"
+                    @(r.ID == Model.RoomID ? "selected" : "")>
+                        @r.Name
+                    </option>
+
+                }
+            </select>
+        </div>
+
+        <!-- Imię, Nazwisko -->
+        <div class="mb-3">
+            <label class="form-label">Imię</label>
+            <input type="text" class="form-control" name="FirstName"
+                   value="@Model.FirstName" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Nazwisko</label>
+            <input type="text" class="form-control" name="LastName"
+                   value="@Model.LastName" required />
+        </div>
+
+        <!-- Daty -->
+        <div class="mb-3">
+            <label>Data od</label>
+            <input type="date" class="form-control" name="FromDate"
+                   value="@Model.FromDate.ToString("yyyy-MM-dd")"
+                   required />
+        </div>
+        <div class="mb-3">
+            <label>Data do</label>
+            <input type="date" class="form-control" name="DateTo"
+                   value="@Model.DateTo.ToString("yyyy-MM-dd")"
+                   required />
+        </div>
+
+        <!-- Liczba dorosłych i dzieci -->
+        <!-- Liczba dorosłych -->
+        <div class="mb-3">
+            <label>Liczba dorosłych</label>
+            <select class="form-select" name="AdultCount" id="adultCountSelect" required>
+                <!-- Na starcie, jeśli nie wiesz jeszcze, ilu maksymalnie – wypełnisz dynamicznie w JS -->
+            </select>
+        </div>
+
+        <!-- Liczba dzieci -->
+        <div class="mb-3">
+            <label>Liczba dzieci</label>
+            <select class="form-select" name="ChildrenCount" id="childrenCountSelect" required>
+                <!-- j.w. – wypełniane dynamicznie w JS -->
+            </select>
+        </div>
+
+
+        <!-- Pola Śniadanie / Obiad / Kolacja (liczba osób) -->
+        <h5>Śniadanie</h5>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Dorośli</label>
+                <input type="number" class="form-control"
+                       name="BreakfastAdults"
+                       value="@Model.BreakfastAdults" min="0" />
+            </div>
+            <div class="col">
+                <label>Dzieci</label>
+                <input type="number" class="form-control"
+                       name="BreakfastChildren"
+                       value="@Model.BreakfastChildren" min="0" />
+            </div>
+        </div>
+
+        <h5>Obiad</h5>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Dorośli</label>
+                <input type="number" class="form-control"
+                       name="LunchAdults"
+                       value="@Model.LunchAdults" min="0" />
+            </div>
+            <div class="col">
+                <label>Dzieci</label>
+                <input type="number" class="form-control"
+                       name="LunchChildren"
+                       value="@Model.LunchChildren" min="0" />
+            </div>
+        </div>
+
+        <h5>Kolacja</h5>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Dorośli</label>
+                <input type="number" class="form-control"
+                       name="DinnerAdults"
+                       value="@Model.DinnerAdults" min="0" />
+            </div>
+            <div class="col">
+                <label>Dzieci</label>
+                <input type="number" class="form-control"
+                       name="DinnerChildren"
+                       value="@Model.DinnerChildren" min="0" />
+            </div>
+        </div>
+
+        <!-- Opłacone checkbox -->
+        <div class="mb-3">
+            @Html.CheckBoxFor(m => m.IsPaid, new { @class = "form-check-input", id = "isPaidCheck" })
+            <label class="form-check-label" for="isPaidCheck">Opłacone</label>
+        </div>
+        @if (Model.IsPaid)
+        {
+            <div class="mb-3">
+                <label class="form-label">Metoda płatności</label>
+                @Html.DropDownListFor(m => m.PaymentMethod,
+                         new SelectList(Enum.GetValues(typeof(PaymentMethod)).Cast<PaymentMethod>()),
+                         "-- Wybierz --",
+                         new { @class = "form-select" })
+            </div>
+        }
+
+        <!-- Status rezerwacji -->
+        <div class="mb-3">
+            <label>Status rezerwacji</label>
+            <select class="form-select" name="Status">
+                @foreach (ReservationStatus s in Enum.GetValues(typeof(ReservationStatus)))
+                {
+                    <option value="@s" @(s == Model.Status ? "selected" : "")>
+                        @s.GetDisplayName()
+                    </option>
+                }
+            </select>
+        </div>
+
+        <!-- Łączna kwota (podgląd) -->
+        <div class="mb-3">
+            <label>Łączna kwota</label>
+            <input type="text" class="form-control" id="totalPrice"
+                   value="@Model.TotalPrice.ToString("C")" readonly />
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            @(Model.ID > 0 ? "Zapisz" : "Dodaj")
+        </button>
+    </form>
+</div>

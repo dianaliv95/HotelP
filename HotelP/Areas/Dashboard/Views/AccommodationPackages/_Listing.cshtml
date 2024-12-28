@@ -1,0 +1,94 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationPackagesListingModel
+
+@if (Model.AccommodationPackages != null && Model.AccommodationPackages.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Fee Per Night</th>
+                <th>Accommodation Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var package in Model.AccommodationPackages)
+            {
+                <tr>
+                    <td>@package.Name</td>
+                    <td>@package.FeePerNight.ToString("C", System.Globalization.CultureInfo.CreateSpecificCulture("pl-PL"))</td>
+                    <td>@package.AccommodationTypeName</td>
+                    <td>
+                        <button data-href="@Url.Action("Action", "AccommodationPackages", new { ID = package.ID })"
+                                class="btn btn-primary edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button data-href="@Url.Action("Delete", "AccommodationPackages", new { ID = package.ID })"
+                                class="btn btn-danger delete-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-danger">Sorry! No records exist.</div>
+}
+
+@if (Model.Pager != null && Model.Pager.EndPage > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @if (Model.Pager.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", "AccommodationPackages", new { page = 1, searchTerm = Model.SearchTerm, AccommodationTypeID = Model.AccommodationTypeID })">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", "AccommodationPackages", new { page = Model.Pager.CurrentPage - 1, searchTerm = Model.SearchTerm, AccommodationTypeID = Model.AccommodationTypeID })">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            }
+
+            @for (var i = Model.Pager.StartPage; i <= Model.Pager.EndPage; i++)
+            {
+                // Najpierw w bloku kodu ustalamy klasę CSS oraz link
+                var cssClass = i == Model.Pager.CurrentPage ? "active" : "";
+                var linkUrl = Url.Action("Index", "AccommodationPackages", new { page = i, searchTerm = Model.SearchTerm, AccommodationTypeID = Model.AccommodationTypeID });
+                var pageText = i.ToString(); // Tekst do wyświetlenia (numer strony)
+
+                // Następnie generujemy elementy HTML, używając już przygotowanych zmiennych
+                <li class="page-item @cssClass">
+                    <a class="page-link" href="@linkUrl">
+                        @pageText
+                    </a>
+                </li>
+            }
+
+
+            @if (Model.Pager.CurrentPage < Model.Pager.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", "AccommodationPackages", new { page = Model.Pager.CurrentPage + 1, searchTerm = Model.SearchTerm, AccommodationTypeID = Model.AccommodationTypeID })">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", "AccommodationPackages", new { page = Model.Pager.TotalPages, searchTerm = Model.SearchTerm, AccommodationTypeID = Model.AccommodationTypeID })">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

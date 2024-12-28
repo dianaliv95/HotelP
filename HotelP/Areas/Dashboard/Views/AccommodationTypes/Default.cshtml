@@ -1,0 +1,11 @@
+﻿@model IEnumerable<HMS.Entities.AccommodationType>
+
+<div>
+    <h3>Accommodation Types</h3>
+    <ul>
+        @foreach (var type in Model)
+        {
+            <li>@type.Name</li>
+        }
+    </ul>
+</div>

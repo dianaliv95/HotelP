@@ -1,0 +1,44 @@
+﻿@model List<HMS.Entities.RoleDTO>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Users</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in Model)
+            {
+                <tr>
+                    <td>@role.ID</td>
+                    <td>@role.Name</td>
+                    <td>@role.UsersCount</td>
+                    <td>
+                        <button data-href="@Url.Action("Action", "Roles", new { id = role.ID, area = "Dashboard" })"
+                                class="btn btn-primary edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            Edit
+                        </button>
+                        <button data-href="@Url.Action("Delete", "Roles", new { id = role.ID, area = "Dashboard" })"
+                                type="button"
+                                class="btn btn-danger delete-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No roles found.</div>
+}

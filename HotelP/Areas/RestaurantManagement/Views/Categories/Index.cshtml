@@ -1,0 +1,177 @@
+﻿@model Hotel.Areas.RestaurantManagement.ViewModels.CategoriesListingModel
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Categories</h2>
+        <hr />
+    </div>
+</div>
+
+<!-- Przycisk Create -->
+<div class="row mb-3">
+    <div class="col-lg-12">
+        <button type="button" data-href="@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })"
+                class="create-btn btn btn-outline-success"
+                data-bs-toggle="modal"
+                data-bs-target="#actionModal"
+                aria-label="Create Category">
+            <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i> Create Category
+        </button>
+    </div>
+</div>
+
+<!-- Formularz Search -->
+<div class="row mb-3">
+    <div class="col-lg-12">
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-auto">
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search Categories" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary mb-3">Search</button>
+                <a href="@Url.Action("Index", "Categories", new { area = "RestaurantManagement" })" class="btn btn-secondary mb-3">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista kategorii -->
+<div class="row">
+    <div class="col-lg-12">
+        @if (Model.Categories == null)
+        {
+            <div class="alert alert-danger" role="alert">
+                Failed to load categories. Please try again later.
+            </div>
+        }
+        else if (Model.Categories.Count == 0)
+        {
+            <div class="alert alert-warning" role="alert">
+                No categories found. Use the "Create Category" button to add a new one.
+            </div>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <tr>
+                            <td>@category.Name</td>
+                            <td>@category.Description</td>
+                            <td>
+                                <!-- Przycisk Edit -->
+                                <button data-href="@Url.Action("Action", "Categories", new { area = "RestaurantManagement", ID = category.ID })"
+                                        type="button"
+                                        class="edit-btn btn btn-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#actionModal">
+                                    <i class="fa-solid fa-pen mr-1"></i> Edit
+                                </button>
+
+                                <!-- Przycisk Delete -->
+                                <button data-href="@Url.Action("Delete", "Categories", new { area = "RestaurantManagement", ID = category.ID })"
+                                        type="button"
+                                        class="delete-btn btn btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#actionModal">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="spinner-border text-primary m-auto" role="status" id="loadingSpinner" style="display: none;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Obsługa kliknięcia przycisków Create, Edit, Delete
+        $(document).on("click", ".create-btn, .edit-btn, .delete-btn", function () {
+            const url = $(this).data("href");
+            $("#loadingSpinner").show(); // Pokaż spinner
+            $.get(url, function (data) {
+                $("#loadingSpinner").hide(); // Ukryj spinner
+                $("#actionModal .modal-dialog").html(data); // Wstrzykuj HTML do modalu
+                $("#actionModal").modal("show"); // Wyświetl modal
+            }).fail(function () {
+                $("#loadingSpinner").hide();
+                alert("Failed to load the form.");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku Save w Create/Edit
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+
+            const formData = $("#createCategoryForm").serialize(); // Pobierz dane z formularza
+
+            $.ajax({
+                url: '@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Category has been successfully saved!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        $(".errorDiv").html(result.message || "An unknown error occurred.");
+                        alert("Error: " + (result.message || "Unknown error."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error status:", status);
+                    console.error("Error message:", error);
+                    console.error("Server response:", xhr.responseText);
+                    alert("An error occurred while saving data.");
+                }
+            });
+        });
+
+        // Obsługa kliknięcia przycisku Delete w Delete modal
+        $(document).on("click", "#deleteButton", function () {
+            const id = $(this).data("id"); // Pobierz ID z atrybutu data-id
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Categories", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                type: 'POST',
+                data: { ID: id },
+                success: function (result) {
+                    if (result.success) {
+                        alert("Category deleted successfully!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        alert(result.message || "An error occurred while deleting the category.");
+                    }
+                },
+                error: function () {
+                    alert("Failed to delete the category.");
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,45 @@
+﻿@model List<HMS.Entities.UserDTO>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>@user.Username</td>
+                    <td>@user.FullName</td>
+                    <td>@user.Role</td>
+                    <td>
+                        <button data-href="@Url.Action("Action", "Users", new { area = "Dashboard", id = user.ID })"
+                                class="btn btn-primary edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button data-href="@Url.Action("Delete", "Users", new { area = "Dashboard", id = user.ID })"
+                                class="btn btn-danger delete-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No users found.</div>
+}

@@ -1,0 +1,80 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.UsersListingModel
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Users (@Model.Pager?.TotalItems ?? 0)</h2>
+        <hr />
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-lg-12">
+        <form method="get" action="@Url.Action("Index", "Users", new { area = "Dashboard" })">
+            <div class="input-group">
+                <input type="text" name="searchTerm" class="form-control" placeholder="Search..." value="@Model.SearchTerm" />
+                <div class="input-group-append">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i> Search
+                    </button>
+                    <a href="@Url.Action("Index", "Users", new { area = "Dashboard" })" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-rotate-right"></i> Reset
+                    </a>
+                    <button type="button" class="btn btn-outline-success create-btn"
+                            data-href="@Url.Action("Action", "Users", new { area = "Dashboard" })"
+                            data-bs-toggle="modal"
+                            data-bs-target="#actionModal">
+                        <i class="fa-solid fa-plus"></i> Create User
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        @Html.Partial("_Listing", Model.Users)
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog"></div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on("click", ".create-btn, .edit-btn, .delete-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            });
+        });
+
+        $(document).on("click", "#saveButton", function () {
+            const form = $("#userActionForm");
+            $.post(form.attr("action"), form.serialize(), function (response) {
+                if (response.success) {
+                    $("#actionModal").modal("hide");
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            });
+        });
+
+        $(document).on("click", "#deleteButton", function () {
+            const form = $("#deleteUserForm");
+            $.post(form.attr("action"), form.serialize(), function (response) {
+                if (response.success) {
+                    $("#actionModal").modal("hide");
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            });
+        });
+    </script>
+}
+

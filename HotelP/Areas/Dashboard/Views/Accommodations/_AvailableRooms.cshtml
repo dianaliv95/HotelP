@@ -1,0 +1,27 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AvailableRoomsViewModel
+
+@if (Model.AvailableRooms != null && Model.AvailableRooms.Any())
+{
+    <p>Dostępne pokoje od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nazwa Pokoju</th>
+                <th>Cena za Noc</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var room in Model.AvailableRooms)
+            {
+                <tr>
+                    <td>@room.Name</td>
+                    <td>@String.Format("{0:C}", room.PricePerNight)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Brak dostępnych pokoi na wybrany dzień.</p>
+}

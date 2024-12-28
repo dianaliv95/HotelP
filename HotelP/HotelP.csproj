@@ -16,11 +16,21 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
 	</ItemGroup>
+
 	<ItemGroup>
-		<ProjectReference Include="..\HMS.Data\HMS.Data.csproj" />
-		<ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
-		<ProjectReference Include="..\HMS.Services\HMS.Services.csproj" />
+	  <Folder Include="Areas\Dashboard\Data\" />
+	  <Folder Include="Areas\Dashboard\Models\" />
+	  <Folder Include="Areas\RestaurantManagement\Data\" />
+	  <Folder Include="Areas\RestaurantManagement\Models\" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\HMS.Data\HMS.Data.csproj" />
+	  <ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
+	  <ProjectReference Include="..\HMS.Services\HMS.Services.csproj" />
+	  <ProjectReference Include="..\Hotel.ReceptionSystem\Hotel.ReceptionSystem.csproj" />
+	</ItemGroup>
+	
 
 	
 </Project>

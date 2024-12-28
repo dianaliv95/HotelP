@@ -1,0 +1,89 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationTypesActionModel
+
+@if (Model != null)
+{
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                @if (Model.ID > 0)
+                {
+                    <span> Edit Accommodation Type</span>
+                }
+                else
+                {
+                    <span> Create Accommodation Type</span>
+                }
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="createAccommodationTypeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ID" value="@Model.ID" />
+
+                <div class="mb-3">
+                    <label for="nameInput" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="nameInput" name="Name" placeholder="Enter Accommodation Type Name." value="@Model.Name" required />
+                </div>
+                <div class="mb-3">
+                    <label for="descriptionInput" class="form-label">Description</label>
+                    <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter Accommodation Type Description.">@Model.Description</textarea>
+                </div>
+            </form>
+
+            <div class="errorDiv"></div>
+        </div>
+        <div class="modal-footer">
+            <button id="saveButton" type="button" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk mr-1"></i> Save
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark mr-1"></i> Close
+            </button>
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+    <script>
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
+
+            // Pobierz dane z formularza tworzenia/edycji
+            const formData = $("#createAccommodationTypeForm").serialize();
+
+            $.ajax({
+                url: '@Url.Action("Action", "AccommodationTypes")',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    console.log("Odpowiedź serwera:", result);
+                    if (result && result.success) {
+                        alert("Dane zostały zapisane pomyślnie!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
+                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Status błędu:", status);
+                    console.error("Treść błędu:", error);
+                    console.error("Odpowiedź serwera:", xhr.responseText);
+                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
+                }
+            });
+        });
+
+    </script>
+}
+
+
+
+
+
+
+     
+

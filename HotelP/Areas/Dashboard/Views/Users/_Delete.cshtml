@@ -1,0 +1,25 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.UserActionModel
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Delete User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form id="deleteUserForm" action="@Url.Action("Delete", "Users", new { area = "Dashboard" })" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ID" value="@Model.ID" />
+        </form>
+        <div class="alert alert-danger" role="alert">
+            Are you sure you want to delete the user <strong>@Model.Username</strong>?
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button id="deleteButton" type="button" class="btn btn-danger">
+            <i class="fa-solid fa-trash"></i> Delete
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-xmark"></i> Close
+        </button>
+    </div>
+</div>

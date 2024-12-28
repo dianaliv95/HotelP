@@ -1,0 +1,70 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationTypesActionModel
+
+@if (Model != null)
+{
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                <span>Delete Accommodation Type</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="deleteAccommodationTypeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ID" value="@Model.ID" />
+            </form>
+
+            <div class="alert alert-danger" role="alert">
+                Are you sure you want to delete this Accommodation Type?
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="deleteButton" type="button" class="btn btn-danger">
+                <i class="fa-solid fa-trash mr-1"></i> Delete
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark mr-1"></i> Close
+            </button>
+        </div>
+    </div>
+}
+
+
+
+
+@section Scripts {
+    <script>
+        $(document).on("click", "#deleteButton", function (e) {
+            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
+
+            // Pobierz dane z formularza usuwania (tylko ID)
+            const formData = $("#deleteAccommodationTypeForm").serialize();
+
+            $.ajax({
+                url: '@Url.Action("Delete", "AccommodationTypes")',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Rekord został pomyślnie usunięty!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        window.location.href = "@Url.Action("Index", "AccommodationTypes")"; // Odśwież stronę
+                    } else {
+                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Status błędu:", status);
+                    console.error("Błąd:", error);
+                    console.error("Odpowiedź serwera:", xhr.responseText);
+                    alert("Wystąpił błąd podczas usuwania rekordu.");
+                }
+            });
+        });
+
+
+
+
+    </script>
+}

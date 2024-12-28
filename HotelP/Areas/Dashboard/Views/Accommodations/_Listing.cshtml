@@ -1,0 +1,45 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationsListingModel
+
+@if (Model.Accommodations != null && Model.Accommodations.Count() > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Package</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var accommodation in Model.Accommodations)
+            {
+                <tr>
+                    <td>@accommodation.Name</td>
+                    <td>@accommodation.AccommodationPackage.Name</td>
+                    <td>@accommodation.Description</td>
+                    <td>
+                                        <a href="@Url.Action("ManageRooms", "Accommodations", new { area = "Dashboard", id = accommodation.ID })" class="btn btn-primary btn-sm">Zarządzaj pokojami</a>
+
+                        <button data-href="@Url.Action("Action", "Accommodations", new { ID = accommodation.ID })"
+                                class="btn btn-primary edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button data-href="@Url.Action("Delete", "Accommodations", new { ID = accommodation.ID })"
+                                class="btn btn-danger delete-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No accommodations found.</div>
+}

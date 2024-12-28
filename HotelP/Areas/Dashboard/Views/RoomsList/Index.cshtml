@@ -1,0 +1,174 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.RoomsListViewModel
+
+<div class="container mt-4">
+    <h2>Lista Pokoi</h2>
+    <hr />
+
+    <!-- Formularz filtrowania (opcjonalnie) -->
+    <form method="get" action="@Url.Action("Index", "RoomsList", new { area = "Dashboard" })" class="row g-3 mb-3">
+        <div class="col-auto">
+            <input type="date" class="form-control" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-auto">
+            <input type="date" class="form-control" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-auto">
+            <select class="form-select" name="status">
+                <option value="">-- Wybierz status --</option>
+                <option value="Available" @(Model.SelectedStatus == "Available" ? "selected" : "")>Dostępny</option>
+                <option value="Blocked" @(Model.SelectedStatus == "Blocked" ? "selected" : "")>Zablokowany</option>
+                <option value="Reserved" @(Model.SelectedStatus == "Reserved" ? "selected" : "")>Zarezerwowany</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtruj</button>
+        </div>
+    </form>
+
+    <!-- Tabela z pokojami -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Pakiet</th>
+                <th>Status</th>
+                <th>Max Gości (Dzieci)</th>
+                <th>Cena za noc</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tbody>
+                @if (Model.Rooms != null && Model.Rooms.Any())
+                {
+                    foreach (var room in Model.Rooms)
+                    {
+                    <tr>
+                        <td>@room.Accommodation?.Name</td>
+
+
+                        
+                        <td>
+                                @(room.Accommodation != null && room.Accommodation.AccommodationPackage != null
+                                    ? room.Accommodation.AccommodationPackage.Name
+                                    : "Brak pakietu")
+                        </td>
+                       
+                        <td>
+                            <!-- Wyświetlany status -->
+                                @room.Status
+                        </td>
+                        <td>@room.Accommodation?.MaxAdults  / @room.Accommodation?.MaxChildren  </td>
+                        <td>@room.PricePerNight.ToString("C")</td>
+                        <td>
+                            <!-- Select i guzik do zmiany statusu -->
+                            <select class="form-select form-select-sm room-status-select" data-room-id="@room.ID">
+                                <option value="Available" @(room.Status == "Available" ? "selected" : "")>Dostępny</option>
+                                <option value="Blocked" @(room.Status == "Blocked" ? "selected" : "")>Zablokowany</option>
+                            </select>
+                            <button class="btn btn-sm btn-secondary update-status-btn" data-room-id="@room.ID">
+                                Zmień
+                            </button>
+
+                            <!-- Przycisk "Rezerwuj" -->
+                            <button class="btn btn-sm btn-success create-res-btn"
+                                    data-room-id="@room.ID"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#reservationModal">
+                                Rezerwuj
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                }
+                else
+                {
+                <tr>
+                    <td colspan="6">Brak pokoi do wyświetlenia.</td>
+                </tr>
+                }
+        </tbody>
+
+    </table>
+</div>
+
+<!-- Modal do rezerwacji -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="reservationModalContent">
+            <!-- Partial view wczytany przez AJAX -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // (A) Zmiana statusu
+            $(".update-status-btn").click(function () {
+                var roomId = $(this).data("room-id");
+                var newStatus = $(`.room-status-select[data-room-id='${roomId}']`).val();
+
+                $.ajax({
+                    url: '@Url.Action("ChangeStatus", "RoomsList", new { area = "Dashboard" })',
+                    type: 'POST',
+                    data: { roomId: roomId, newStatus: newStatus },
+                    success: function (result) {
+                        if (result.success) {
+                            alert("Status zaktualizowany.");
+                            location.reload();
+                        } else {
+                            alert(result.message || "Błąd przy zmianie statusu.");
+                        }
+                    },
+                    error: function () {
+                        alert("Wystąpił błąd serwera przy zmianie statusu.");
+                    }
+                });
+            });
+
+            // (B) Otwarcie modala "Rezerwuj"
+            $(".create-res-btn").click(function () {
+                var roomId = $(this).data("room-id");
+
+                $.ajax({
+                    url: '@Url.Action("CreateReservation", "RoomsList", new { area = "Dashboard" })',
+                    type: 'GET',
+                    data: { roomId: roomId },
+                    success: function (html) {
+                        $("#reservationModalContent").html(html);
+                        $("#reservationModal").modal("show");
+                    },
+                    error: function () {
+                        alert("Błąd przy ładowaniu formularza rezerwacji.");
+                    }
+                });
+            });
+
+            // (C) Obsługa submit formularza rezerwacji w modal
+            $(document).on("submit", "#reservationForm", function (e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: '@Url.Action("CreateReservation", "RoomsList", new { area = "Dashboard" })',
+                    type: 'POST',
+                    data: formData,
+                    success: function (result) {
+                        if (result.success) {
+                            alert(result.message);
+                            $("#reservationModal").modal("hide");
+                            location.reload();
+                        } else {
+                            alert(result.message || "Błąd przy tworzeniu rezerwacji.");
+                        }
+                    },
+                    error: function () {
+                        alert("Wystąpił błąd serwera przy tworzeniu rezerwacji.");
+                    }
+                });
+            });
+        });
+    </script>
+}

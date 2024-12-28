@@ -1,0 +1,134 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.RolesListingModel
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Roles</h2>
+        <hr />
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-lg-12">
+        <form method="get" asp-action="Index">
+            <div class="input-group">
+                <input type="text" name="searchterm" class="form-control" placeholder="Search" value="@Model.SearchTerm" />
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Search
+                </button>
+                <a href="@Url.Action("Index", "Roles", new { area = "Dashboard" })" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                </a>
+                <button data-href="@Url.Action("Action", "Roles", new { area = "Dashboard" })"
+                        class="create-btn btn btn-outline-success"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#actionModal">
+                    <i class="fa-solid fa-plus mr-1"></i> Create
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        @Html.Partial("_Listing", Model.Roles)
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Ładowanie formularza dla Create/Edit
+        $(document).on("click", ".create-btn, .edit-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data); // Załaduj formularz do modala
+                $("#actionModal").modal("show"); // Pokaż modal
+            }).fail(function () {
+                alert("Failed to load the form.");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku Save dla Create/Edit
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
+
+            const form = $("#createRoleForm");
+            const formData = form.serialize(); // Serializuj dane formularza
+
+            $.ajax({
+                url: '@Url.Action("Action", "Roles", new { area = "Dashboard" })',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Role saved successfully!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        $(".errorDiv").html(result.message || "Unknown error occurred.");
+                        alert("Error: " + (result.message || "Unknown error."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error status:", status);
+                    console.error("Error details:", error);
+                    console.error("Server response:", xhr.responseText);
+                    alert("An error occurred while saving the role.");
+                }
+            });
+        });
+
+        // Ładowanie formularza dla Delete
+        $(document).on("click", ".delete-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            }).fail(function () {
+                alert("Failed to load the delete confirmation.");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku Delete
+        $(document).on("click", "#deleteButton", function (e) {
+            e.preventDefault();
+
+            const form = $("#roleDeleteForm");
+            const formData = form.serialize(); // Serializuj dane formularza
+
+            console.log("FormData:", formData); // Sprawdź dane przesyłane do serwera
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Roles", new { area = "Dashboard" })',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Role deleted successfully!");
+                        $("#actionModal").modal("hide");
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        alert("Error: " + (result.message || "An unknown error occurred."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error status:", status);
+                    console.error("Error details:", error);
+                    console.error("Server response:", xhr.responseText);
+                    alert("An error occurred while trying to delete the role.");
+                }
+            });
+        });
+    </script>
+}
+
+
+
+

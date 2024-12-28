@@ -1,0 +1,43 @@
+﻿<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var dish in Model.Dishes)
+        {
+            <tr>
+                <td>@dish.Name</td>
+                <td>
+                    @if (dish.Category != null)
+                    {
+                        @dish.Category.Name
+                    }
+                    else
+                    {
+                        <span class="text-danger">No Category</span>
+                    }
+                </td>
+                <td>@dish.Price.ToString("C")</td>
+                <td>
+                    <button data-href="@Url.Action("Action", "Dishes", new { ID = dish.ID, area = "RestaurantManagement" })"
+                            class="edit-btn btn btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#actionModal">
+                        Edit
+                    </button>
+                    <button data-href="@Url.Action("Delete", "Dishes", new { ID = dish.ID, area = "RestaurantManagement" })"
+                            class="delete-btn btn btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#actionModal">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

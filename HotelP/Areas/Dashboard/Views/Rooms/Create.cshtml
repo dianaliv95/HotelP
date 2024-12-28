@@ -1,0 +1,43 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.RoomViewModel
+
+<div class="container mt-4">
+    <h2>Dodaj Pokój</h2>
+    <form method="post" asp-action="Create" asp-controller="Rooms" asp-area="Dashboard">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label for="roomName" class="form-label">Nazwa Pokoju</label>
+            <input asp-for="Name" class="form-control" id="roomName" placeholder="Wprowadź nazwę pokoju" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label for="accommodationId" class="form-label">Zakwaterowanie</label>
+            <select asp-for="AccommodationID" class="form-select" id="accommodationId" required>
+                <option value="">-- Wybierz Zakwaterowanie --</option>
+                @foreach (var accommodation in Model.Accommodations)
+                {
+                    <option value="@accommodation.ID" @(accommodation.ID == Model.AccommodationID ? "selected" : "")>
+                        @($"{accommodation.Name} - {accommodation.AccommodationPackage.Name}")
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="AccommodationID" class="text-danger"></span>
+        </div>
+
+
+        <div class="mb-3">
+            <label for="pricePerNight" class="form-label">Cena za noc</label>
+            <input asp-for="PricePerNight" class="form-control" id="pricePerNight" min="0" step="0.01" placeholder="Wprowadź cenę za noc" />
+            <span asp-validation-for="PricePerNight" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Dodaj Pokój</button>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,483 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.BookingsListingModel
+@using HMS.Entities
+
+@{
+    ViewData["Title"] = "Rezerwacje";
+}
+
+<div class="container mt-4">
+    <h2>Lista Rezerwacji</h2>
+
+    <!-- Formularz filtrowania -->
+    <form id="filterForm" class="row g-3 mb-4" method="get" action="@Url.Action("Index", "Bookings", new { area = "Dashboard" })">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="searchTerm" placeholder="Wyszukaj po imieniu lub nazwisku" value="@Model.SearchTerm" />
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" name="accommodationId">
+                <option value="">-- Wszystkie Zakwaterowania --</option>
+                @foreach (var accommodation in Model.Accommodations)
+                {
+                    <option value="@accommodation.ID" @(accommodation.ID == Model.SelectedAccommodationId ? "selected" : "")>
+                        @accommodation.AccommodationPackage.Name - @accommodation.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Filtruj</button>
+            <button type="button"
+                    class="btn btn-success"
+                    data-bs-toggle="modal"
+                    data-bs-target="#actionModal"
+                    data-href="@Url.Action("CreateOrEdit", "Bookings", new { area = "Dashboard" })">
+                <i class="fa-solid fa-plus"></i> Dodaj Rezerwację
+            </button>
+        </div>
+    </form>
+
+    <!-- Tabela rezerwacji -->
+    @if (Model.Bookings != null && Model.Bookings.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Pokój</th>
+                    <th>Gość</th>
+                    <th>Data Rozpoczęcia</th>
+                    <th>Data Zakończenia</th>
+                    <th>Czas Trwania (dni)</th>
+                    <th>Dodatkowe Usługi</th>
+                    <th>Kwota</th>
+                    <th>Status</th>
+                    <th>Opłacone</th>
+                    <th>Metoda Płatności</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.Bookings)
+                {
+                    <tr>
+                        <td>@(booking.Room.Name)</td>
+                        <td>@booking.FirstName @booking.LastName</td>
+                        <td>@booking.DateFrom.ToString("dd.MM.yyyy")</td>
+                        <td>@booking.DateTo.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @{
+                                // Po prostu do wyświetlenia:
+                                int duration = (booking.DateTo - booking.DateFrom).Days;
+                                if (duration < 0) duration = 0;
+                            }
+                            @(duration > 0 ? duration.ToString() : "Brak")
+                        </td>
+                        <td>
+                            @{
+                                // Tu wyświetlasz, ilu dorosłych/dzieci zamówiło posiłki:
+                                // przykładowo:
+                                // "Śniadanie: 2 os." itp.
+                                bool hasBreakfast = (booking.BreakfastAdults + booking.BreakfastChildren) > 0;
+                                bool hasLunch = (booking.LunchAdults + booking.LunchChildren) > 0;
+                                bool hasDinner = (booking.DinnerAdults + booking.DinnerChildren) > 0;
+
+                                if (!hasBreakfast && !hasLunch && !hasDinner)
+                                {
+                                    @:Brak
+                                }
+                                else
+                                {
+                                    <ul>
+                                        @if (hasBreakfast)
+                                        {
+                                            <li>
+                                                Śniadanie:
+                                                @(booking.BreakfastAdults + booking.BreakfastChildren) os.
+                                            </li>
+                                        }
+                                        @if (hasLunch)
+                                        {
+                                            <li>
+                                                Obiad:
+                                                @(booking.LunchAdults + booking.LunchChildren) os.
+                                            </li>
+                                        }
+                                        @if (hasDinner)
+                                        {
+                                            <li>
+                                                Kolacja:
+                                                @(booking.DinnerAdults + booking.DinnerChildren) os.
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            }
+                        </td>
+                        <td>
+                            @booking.TotalPrice.ToString("C")
+                        </td>
+                        <td>
+                            @booking.Status.GetDisplayName()
+                        </td>
+                        <td>
+                            @if (booking.IsPaid)
+                            {
+                                <span class="badge bg-success">Tak</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Nie</span>
+                            }
+                        </td>
+                        <td>
+                            @if (booking.PaymentMethod.HasValue)
+                            {
+                                @booking.PaymentMethod.Value.GetDisplayName()
+                            }
+                            else
+                            {
+                                <span>N/A</span>
+                            }
+                        </td>
+                        <td>
+                            <!-- Przykładowe przyciski Edytuj/Usuń -->
+                            <button data-href="@Url.Action("CreateOrEdit", "Bookings", new { id = booking.ID, area = "Dashboard" })"
+                                    class="btn btn-primary btn-sm edit-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#actionModal">
+                                <i class="fa-solid fa-pen"></i> Edytuj
+                            </button>
+                            <button data-href="@Url.Action("DeleteBooking", "Bookings", new { area = "Dashboard", id = booking.ID })"
+                                    class="btn btn-danger btn-sm delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal">
+                                <i class="fa-solid fa-trash"></i> Usuń
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning">Nie znaleziono żadnych rezerwacji.</div>
+    }
+</div>
+
+<!-- Modal do tworzenia/edycji rezerwacji -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Treść modala będzie ładowana dynamicznie -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal do potwierdzania usunięcia rezerwacji -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Treść modala będzie ładowana dynamicznie -->
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            /**
+             * Funkcja do ładowania partiala (np. formularza w modalu) przez AJAX.
+             */
+            function loadModal(url, modalSelector) {
+                console.log(`Loading modal from URL: ${url}`);
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (html) {
+                        console.log('Modal loaded successfully.');
+                        $(modalSelector).find('.modal-content').html(html);
+                        $(modalSelector).modal('show');
+
+                        // Po załadowaniu do #actionModal – inicjuj formularz
+                        if (modalSelector === '#actionModal') {
+                            initializeBookingForm();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error loading modal:', error);
+                        alert('Wystąpił błąd podczas ładowania formularza.');
+                    }
+                });
+            }
+
+            /**
+             * Inicjuje logikę formularza: ustawianie max dorosłych/dzieci,
+             * liczenie ceny na podstawie inputów itp.
+             */
+            function initializeBookingForm() {
+                const roomSelect = $("#roomSelect");
+                const fromDateInput = $("input[name='FromDate']");
+                const toDateInput = $("input[name='DateTo']");
+
+                // Pola liczby dorosłych/dzieci (input type="number")
+                const adultCountInput = $("input[name='AdultCount']");
+                const childrenCountInput = $("input[name='ChildrenCount']");
+
+                // Pola posiłków
+                const breakfastAdultsInput = $("input[name='BreakfastAdults']");
+                const breakfastChildrenInput = $("input[name='BreakfastChildren']");
+                const lunchAdultsInput = $("input[name='LunchAdults']");
+                const lunchChildrenInput = $("input[name='LunchChildren']");
+                const dinnerAdultsInput = $("input[name='DinnerAdults']");
+                const dinnerChildrenInput = $("input[name='DinnerChildren']");
+
+                // Pole łącznej kwoty
+                const totalPriceInput = $("#totalPrice");
+
+                /**
+                 * Ustawia w inputach AdultCount / ChildrenCount atrybut max=
+                 * na podstawie data-maxadults / data-maxchildren z opcji.
+                 */
+                function updateMaxGuests() {
+                    const selectedOption = $("#roomSelect").find("option:selected");
+                    const maxAdults = parseInt(selectedOption.data("maxadults") || 1, 10);
+                    const maxChildren = parseInt(selectedOption.data("maxchildren") || 1, 10);
+
+                    // Generowanie <option> w <select> #adultCountSelect (od 1 do maxAdults)
+                    let adultCountHtml = "";
+                    for (let i = 1; i <= maxAdults; i++) {
+                        adultCountHtml += `<option value="${i}">${i}</option>`;
+                    }
+                    $("#adultCountSelect").html(adultCountHtml);
+
+                    // Generowanie <option> w <select> #childrenCountSelect (od 0 do maxChildren)
+                    // jeśli np. dopuszczasz 0 dzieci, to pętla może zaczynać się od 0
+                    let childrenCountHtml = "";
+                    for (let i = 0; i <= maxChildren; i++) {
+                        childrenCountHtml += `<option value="${i}">${i}</option>`;
+                    }
+                    $("#childrenCountSelect").html(childrenCountHtml);
+                }
+
+
+                /**
+                 * Oblicza całkowitą cenę = (cena pokoju * noce) + posiłki.
+                 * Wartości stawek (20,25,30) dopasuj do BookingService.
+                 */
+                function calculateTotalPrice() {
+                    const roomId = roomSelect.val();
+                    const fromDate = new Date(fromDateInput.val());
+                    const toDate = new Date(toDateInput.val());
+
+                    // Liczba nocy
+                    const numberOfNights = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24));
+                    if (!roomId || isNaN(fromDate) || isNaN(toDate) || numberOfNights <= 0) {
+                        totalPriceInput.val("0,00 zł");
+                        return;
+                    }
+
+                    // Cena pokoju
+                    const selectedOpt = roomSelect.find("option:selected");
+                    const roomPricePerNight = parseFloat(selectedOpt.data("price") || 0);
+
+                    // Liczby osób (posiłki)
+                    const bA = parseInt(breakfastAdultsInput.val() || 0, 10);
+                    const bC = parseInt(breakfastChildrenInput.val() || 0, 10);
+                    const lA = parseInt(lunchAdultsInput.val() || 0, 10);
+                    const lC = parseInt(lunchChildrenInput.val() || 0, 10);
+                    const dA = parseInt(dinnerAdultsInput.val() || 0, 10);
+                    const dC = parseInt(dinnerChildrenInput.val() || 0, 10);
+
+                    // Stawki
+                    const breakfastPrice = 20;
+                    const lunchPrice = 25;
+                    const dinnerPrice = 30;
+
+                    let total = roomPricePerNight * numberOfNights;
+                    total += (bA + bC) * breakfastPrice * numberOfNights;
+                    total += (lA + lC) * lunchPrice * numberOfNights;
+                    total += (dA + dC) * dinnerPrice * numberOfNights;
+
+                    // Wyświetlamy
+                    totalPriceInput.val(
+                        total.toLocaleString("pl-PL", {
+                            style: "currency",
+                            currency: "PLN"
+                        })
+                    );
+                }
+
+                // Zmiana pokoju -> updateMaxGuests + przelicz cenę
+                roomSelect.on("change", function () {
+                    updateMaxGuests();
+                    calculateTotalPrice();
+                });
+
+                // Zmiana dat -> przelicz cenę
+                fromDateInput.on("change", calculateTotalPrice);
+                toDateInput.on("change", calculateTotalPrice);
+
+                // Zmiana liczby osób w posiłkach -> przelicz
+                breakfastAdultsInput.on("change keyup", calculateTotalPrice);
+                breakfastChildrenInput.on("change keyup", calculateTotalPrice);
+                lunchAdultsInput.on("change keyup", calculateTotalPrice);
+                lunchChildrenInput.on("change keyup", calculateTotalPrice);
+                dinnerAdultsInput.on("change keyup", calculateTotalPrice);
+                dinnerChildrenInput.on("change keyup", calculateTotalPrice);
+
+                // Pierwsze uruchomienie
+                updateMaxGuests();
+                calculateTotalPrice();
+            }
+
+            // Obsługa "Dodaj Rezerwację"
+            $(document).on('click', '.btn-success[data-href]', function () {
+                const url = $(this).data('href');
+                console.log(`Add button clicked. URL: ${url}`);
+                loadModal(url, '#actionModal');
+            });
+
+            // Obsługa "Edytuj"
+            $(document).on('click', '.edit-btn', function () {
+                const url = $(this).data('href');
+                console.log(`Edit button clicked. URL: ${url}`);
+                loadModal(url, '#actionModal');
+            });
+
+            // Obsługa "Usuń"
+            $(document).on('click', '.delete-btn', function () {
+                const url = $(this).data('href');
+                console.log(`Delete button clicked. URL: ${url}`);
+                loadModal(url, '#deleteModal');
+            });
+
+            // Wysyłanie formularza rezerwacji
+            $(document).on('submit', '#bookingForm', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = form.attr('action');
+                const method = form.attr('method');
+                const data = form.serialize();
+
+                console.log(`Submitting booking form. URL: ${url}, Method: ${method}`);
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: data,
+                    success: function (result) {
+                        console.log('Form submission response:', result);
+                        if (result.success) {
+                            alert(result.message);
+                            $('#actionModal').modal('hide');
+                            location.reload();
+                        } else {
+                            console.log('Validation errors:', result);
+                            // Gdy serwer zwraca partial (HTML) z walidacją – podmieniamy
+                            $('#actionModal .modal-content').html(result);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error saving booking:', error);
+                        alert('Wystąpił błąd podczas zapisywania rezerwacji.');
+                    }
+                });
+            });
+
+            // Wysyłanie formularza usuwania
+            $(document).on('submit', '#deleteBookingForm', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = form.attr('action');
+                const method = form.attr('method');
+                const data = form.serialize();
+
+                console.log(`Submitting delete form. URL: ${url}, Method: ${method}`);
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: data,
+                    success: function (result) {
+                        console.log('Delete submission response:', result);
+                        if (result.success) {
+                            alert(result.message);
+                            $('#deleteModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(result.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error deleting booking:', error);
+                        alert('Wystąpił błąd podczas usuwania rezerwacji.');
+                    }
+                });
+            });
+
+            // (Opcjonalnie) Zmiana zakwaterowania, jeśli używasz #accommodationSelect
+            // i pobierasz pokoje dynamicznie
+            $(document).on('change', '#accommodationSelect', function () {
+                const accommodationId = $(this).val();
+                const fromDate = $('#fromDateInput').val();
+                const toDate = $('#dateToInput').val();
+
+                if (accommodationId) {
+                    $.ajax({
+                        url: '/Dashboard/Bookings/GetAvailableRooms',
+                        type: 'GET',
+                        data: {
+                            accommodationId: accommodationId,
+                            fromDate: fromDate,
+                            toDate: toDate
+                        },
+                        success: function (data) {
+                            const roomSelect = $('#roomSelect');
+                            roomSelect.empty();
+
+                            if (data && data.length > 0) {
+                                roomSelect.append('<option value="">-- Wybierz Pokój --</option>');
+                                data.forEach(function (room) {
+                                    // Musisz sam dodać data-maxadults, data-maxchildren jeśli chcesz
+                                    // np. roomSelect.append( ... data-maxadults="${room.MaxAdults}" ...)
+                                    roomSelect.append(
+                                        `<option value="${room.ID}" data-price="${room.PricePerNight}">
+                                                     ${room.Name}
+                                                 </option>`
+                                    );
+                                });
+                            } else {
+                                roomSelect.append('<option value="">Brak dostępnych pokoi</option>');
+                            }
+                        },
+                        error: function () {
+                            alert('Wystąpił błąd podczas pobierania pokoi.');
+                        }
+                    });
+                } else {
+                    $('#roomSelect')
+                        .empty()
+                        .append('<option value="">-- Wybierz Pokój --</option>');
+                }
+            });
+
+            // Walidacja czy wybrano pokój
+            $(document).on('submit', '#bookingForm', function (e) {
+                const roomId = $('#roomSelect').val();
+                if (!roomId) {
+                    alert('Proszę wybrać pokój.');
+                    e.preventDefault();
+                }
+            });
+
+        });
+    </script>
+}
+
+
+
+
+
+

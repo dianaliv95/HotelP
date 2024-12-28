@@ -1,0 +1,12 @@
+﻿@model List<HMS.Entities.Category>
+
+<ul class="list-group">
+    @foreach (var category in Model)
+    {
+        <li class="list-group-item">
+            <a href="@Url.Action("Index", "Dishes", new { area = "RestaurantManagement", categoryId = category.ID })">
+                @category.Name
+            </a>
+        </li>
+    }
+</ul>

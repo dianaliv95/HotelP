@@ -1,0 +1,232 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.BookingActionModel
+@using HMS.Entities
+@using System.ComponentModel.DataAnnotations
+
+<div class="modal-header">
+    <h5 class="modal-title" id="actionModalLabel">
+        @if (Model.ID > 0)
+        {
+            <span>Edytuj Rezerwację</span>
+        }
+        else
+        {
+            <span>Dodaj Rezerwację</span>
+        }
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <form id="bookingForm" method="post"
+          action="@Url.Action("CreateOrEdit", "Bookings", new { area = "Dashboard" })">
+        @Html.AntiForgeryToken()
+
+        <!-- Wybór pokoju -->
+        <div class="mb-3">
+            <label for="roomSelect" class="form-label">Pokój</label>
+            <select class="form-select" id="roomSelect" name="RoomID" required>
+                <option value="">-- Wybierz Pokój --</option>
+                @if (Model.AvailableRooms != null && Model.AvailableRooms.Any())
+                {
+                    foreach (var room in Model.AvailableRooms)
+                    {
+                        <option value="@room.ID" @(room.ID == Model.RoomID ? "selected" : "")>
+                            @room.Name
+                        </option>
+                    }
+                }
+                else
+                {
+                    <option value="">Brak dostępnych pokoi</option>
+                }
+            </select>
+            <div class="invalid-feedback">Proszę wybrać pokój.</div>
+        </div>
+
+        <!-- Jeżeli chcesz wyświetlić pokój "przypisany" -->
+        @if (Model.Room != null)
+        {
+            <div class="mb-3">
+                <label for="assignedRoom" class="form-label">Przypisany Pokój</label>
+                <input type="text" class="form-control" id="assignedRoom" value="@Model.Room.Name" readonly />
+                <input type="hidden" name="RoomID" value="@Model.Room.ID" />
+            </div>
+        }
+        else if (Model.AvailableRooms != null && Model.AvailableRooms.Any())
+        {
+            <!-- Ewentualnie drugi select,
+                 ale prawdopodobnie wystarczy ten wyżej -->
+        }
+
+        <!-- Imię, Nazwisko -->
+        <div class="mb-3">
+            <label for="firstNameInput" class="form-label">Imię</label>
+            <input type="text" class="form-control"
+                   id="firstNameInput" name="FirstName"
+                   placeholder="Wprowadź imię"
+                   value="@Model.FirstName"
+                   required />
+            <div class="invalid-feedback">Proszę wprowadzić imię.</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="lastNameInput" class="form-label">Nazwisko</label>
+            <input type="text" class="form-control"
+                   id="lastNameInput" name="LastName"
+                   placeholder="Wprowadź nazwisko"
+                   value="@Model.LastName"
+                   required />
+            <div class="invalid-feedback">Proszę wprowadzić nazwisko.</div>
+        </div>
+
+        <!-- Daty pobytu -->
+        <div class="mb-3">
+            <label for="fromDateInput" class="form-label">Data Rozpoczęcia</label>
+            <input type="date" class="form-control"
+                   id="fromDateInput" name="FromDate"
+                   value="@Model.FromDate.ToString("yyyy-MM-dd")"
+                   required />
+            <div class="invalid-feedback">Proszę wybrać datę rozpoczęcia.</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="dateToInput" class="form-label">Data Zakończenia</label>
+            <input type="date" class="form-control"
+                   id="dateToInput" name="DateTo"
+                   value="@Model.DateTo.ToString("yyyy-MM-dd")"
+                   required />
+            <div class="invalid-feedback">Proszę wybrać datę zakończenia.</div>
+        </div>
+
+        <!-- Czas trwania (opcjonalnie, jeśli Duration istnieje w modelu) -->
+        <div class="mb-3">
+            <label for="durationInput" class="form-label">Czas Trwania (dni)</label>
+            <input type="number" class="form-control"
+                   id="durationInput"
+                   name="Duration"
+                   min="1"
+                   value="@Model.Duration"
+                   readonly />
+            <div class="invalid-feedback">Proszę wprowadzić poprawny czas trwania.</div>
+        </div>
+
+        <!-- Liczba osób (dorosłych / dzieci) -->
+        <div class="mb-3 row">
+            <div class="col">
+                <label class="form-label">Dorośli</label>
+                <input type="number" class="form-control"
+                       name="AdultCount"
+                       value="@Model.AdultCount"
+                       min="1"
+                       required />
+            </div>
+            <div class="col">
+                <label class="form-label">Dzieci</label>
+                <input type="number" class="form-control"
+                       name="ChildrenCount"
+                       value="@Model.ChildrenCount"
+                       min="0"
+                       required />
+            </div>
+        </div>
+
+        <!-- Sekcja: posiłki (zamiast booli – liczba dorosłych/dzieci) -->
+        <h5>Śniadanie</h5>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Dorośli</label>
+                <input type="number" class="form-control"
+                       name="BreakfastAdults"
+                       value="@Model.BreakfastAdults" min="0" />
+            </div>
+            <div class="col">
+                <label>Dzieci</label>
+                <input type="number" class="form-control"
+                       name="BreakfastChildren"
+                       value="@Model.BreakfastChildren" min="0" />
+            </div>
+        </div>
+
+        <h5>Obiad</h5>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Dorośli</label>
+                <input type="number" class="form-control"
+                       name="LunchAdults"
+                       value="@Model.LunchAdults" min="0" />
+            </div>
+            <div class="col">
+                <label>Dzieci</label>
+                <input type="number" class="form-control"
+                       name="LunchChildren"
+                       value="@Model.LunchChildren" min="0" />
+            </div>
+        </div>
+
+        <h5>Kolacja</h5>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Dorośli</label>
+                <input type="number" class="form-control"
+                       name="DinnerAdults"
+                       value="@Model.DinnerAdults" min="0" />
+            </div>
+            <div class="col">
+                <label>Dzieci</label>
+                <input type="number" class="form-control"
+                       name="DinnerChildren"
+                       value="@Model.DinnerChildren" min="0" />
+            </div>
+        </div>
+
+        <!-- Opłacone i Metoda płatności -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox"
+                   id="isPaidCheck"
+                   name="IsPaid"
+            @(Model.IsPaid ? "checked" : "") />
+            <label class="form-check-label" for="isPaidCheck">Opłacone</label>
+        </div>
+
+        @* Pokaż metodę płatności tylko, jeśli IsPaid = true *@
+        @if (Model.IsPaid)
+        {
+            <div class="mb-3">
+                <label for="paymentMethodSelect" class="form-label">Metoda Płatności</label>
+                <select class="form-select" id="paymentMethodSelect" name="PaymentMethod" required>
+                    <option value="">-- Wybierz Metodę Płatności --</option>
+                    @foreach (var method in Enum.GetValues(typeof(PaymentMethod)).Cast<PaymentMethod>())
+                    {
+                        <option value="@method" @(method == Model.PaymentMethod ? "selected" : "")>
+                            @GetPaymentMethodDisplayName(method)
+                        </option>
+                    }
+                </select>
+                <div class="invalid-feedback">Proszę wybrać metodę płatności.</div>
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary">
+            @if (Model.ID > 0)
+            {
+                <span>Zapisz</span>
+            }
+            else
+            {
+                <span>Dodaj</span>
+            }
+        </button>
+    </form>
+</div>
+
+@functions {
+    private string GetPaymentMethodDisplayName(PaymentMethod method)
+    {
+        var displayAttribute = method.GetType()
+                                     .GetField(method.ToString())
+                                     .GetCustomAttributes(typeof(DisplayAttribute), false)
+                                     .FirstOrDefault() as DisplayAttribute;
+
+        return displayAttribute != null ? displayAttribute.Name : method.ToString();
+    }
+}

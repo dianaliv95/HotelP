@@ -1,0 +1,22 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.BookingActionModel
+@using HMS.Entities
+
+<div class="modal-header">
+    <h5 class="modal-title" id="deleteModalLabel">Usuń Rezerwację</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="deleteBookingForm" method="post" action="@Url.Action("DeleteBookingConfirmed", "Bookings", new { area = "Dashboard" })">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.ID" />
+        <p>Czy na pewno chcesz usunąć rezerwację dla <strong>@Model.FirstName @Model.LastName</strong>?</p>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="submit" form="deleteBookingForm" class="btn btn-danger">
+        <i class="fa-solid fa-trash mr-1"></i> Usuń
+    </button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <i class="fa-solid fa-xmark mr-1"></i> Zamknij
+    </button>
+</div> 

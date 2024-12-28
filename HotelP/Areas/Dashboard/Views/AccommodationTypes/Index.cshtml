@@ -1,0 +1,138 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationTypesListingModel
+
+@{
+    ViewData["Title"] = "Accommodation Types";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Accommodation Types</h2>
+        <hr />
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-lg-12">
+        <!-- Formularz Wyszukiwania -->
+        <form method="get" asp-action="Index">
+            <div class="input-group">
+                <input type="text" name="searchterm" class="form-control" placeholder="Search." value="@Model.SearchTerm" />
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Search
+                </button>
+                <a href="@Url.Action("Index", "AccommodationTypes")" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                </a>
+                <!-- Przycisk Create z unikalną klasą -->
+                <button data-href="@Url.Action("Action", "AccommodationTypes")"
+                        id="createButton"
+                        class="create-btn btn btn-outline-success"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#actionModal">
+                    <i class="fa-solid fa-plus mr-1"></i> Create
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        @Html.Partial("_Listing", Model)
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Obsługa kliknięcia przycisku "Create"
+        $(document).on("click", ".create-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku "Edit"
+        $(document).on("click", ".edit-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku "Delete"
+        $(document).on("click", ".delete-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            });
+        });
+
+        // Skrypt dla przycisku "Save" w Create/Edit
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+
+            const formData = $("#createAccommodationTypeForm").serialize(); // Serializacja danych formularza
+
+            $.ajax({
+                url: '@Url.Action("Action", "AccommodationTypes")', // Adres akcji kontrolera
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Dane zostały zapisane pomyślnie!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
+                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Status błędu:", status);
+                    console.error("Treść błędu:", error);
+                    console.error("Odpowiedź serwera:", xhr.responseText);
+                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
+                }
+            });
+        });
+
+        // Skrypt dla przycisku "Delete" w Delete modal
+        $(document).on("click", "#deleteButton", function (e) {
+            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+
+            const formData = $("#deleteAccommodationTypeForm").serialize(); // Serializacja danych formularza
+
+            $.ajax({
+                url: '@Url.Action("Delete", "AccommodationTypes")', // Adres akcji kontrolera
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Rekord został pomyślnie usunięty!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Status błędu:", status);
+                    console.error("Błąd:", error);
+                    console.error("Odpowiedź serwera:", xhr.responseText);
+                    alert("Wystąpił błąd podczas usuwania rekordu.");
+                }
+            });
+        });
+    </script>
+}

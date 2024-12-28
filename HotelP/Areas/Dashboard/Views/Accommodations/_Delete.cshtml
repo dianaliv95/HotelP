@@ -1,0 +1,57 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationActionModel
+
+@if (Model != null)
+{
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Delete Accommodation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="deleteAccommodationForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ID" value="@Model.ID" />
+            </form>
+            <div class="alert alert-danger" role="alert">
+                Are you sure you want to delete the accommodation <strong>@Model.Name</strong>?
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="deleteButton" type="button" class="btn btn-danger">
+                <i class="fa-solid fa-trash mr-1"></i> Delete
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fa-solid fa-xmark mr-1"></i> Close
+            </button>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).on("click", "#deleteButton", function (e) {
+            e.preventDefault();
+
+            const formData = $("#deleteAccommodationForm").serialize();
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Accommodations")',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Accommodation deleted successfully!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        alert(result.message || "An unknown error occurred.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                    alert("An error occurred while deleting accommodation.");
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,107 @@
+﻿model Hotel.Areas.Dashboard.ViewModels.BookingsListingModel
+
+@if (Model.Bookings != null && Model.Bookings.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+
+                <th>Pokój</th>
+                <th>Gość</th>
+                <th>Data Rozpoczęcia</th>
+                <th>Data Zakończenia</th>
+                <th>Czas Trwania (dni)</th>
+                <th>Dodatkowe Usługi</th>
+                <th>Kwota</th>
+                <th>Status</th>
+                <th>Opłacone</th>
+                <th>Metoda Płatności</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model.Bookings)
+            {
+                <tr>
+                    <td>@booking.Room.Name</td>
+                    <td>@booking.FirstName @booking.LastName</td>
+                    <td>@booking.DateFrom.ToString("dd.MM.yyyy")</td>
+                    <td>@booking.DateTo.ToString("dd.MM.yyyy")</td>
+                    <td>@booking.Duration</td>
+                    <td>
+                        @if (booking.Breakfast || booking.Lunch || booking.Dinner)
+                        {
+                            <ul>
+                                @if (booking.Breakfast)
+                                {
+                                    <li>Śniadanie (+20 zł)</li>
+                                }
+                                @if (booking.Lunch)
+                                {
+                                    <li>Obiad (+25 zł)</li>
+                                }
+                                @if (booking.Dinner)
+                                {
+                                    <li>Kolacja (+30 zł)</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>Brak</span>
+                        }
+                    </td>
+                    <td>
+                        @{
+                            var numberOfNights = (booking.DateTo - booking.DateFrom).Days;
+                            var totalPrice = (numberOfNights * booking.Room.PricePerNight) +
+                            (booking.Breakfast ? 20 : 0) +
+                            (booking.Lunch ? 25 : 0) +
+                            (booking.Dinner ? 30 : 0);
+                        }
+                        @totalPrice.ToString("C", System.Globalization.CultureInfo.CreateSpecificCulture("pl-PL"))
+                    </td>
+                    <td>@booking.Status.GetDisplayName()</td>
+                    <td>
+                        @if (booking.IsPaid)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Nie</span>
+                        }
+                    </td>
+                    <td>
+                        @if (booking.PaymentMethod.HasValue)
+                        {
+                            @booking.PaymentMethod.Value.GetDisplayName()
+                        }
+                        else
+                        {
+                            <span>N/A</span>
+                        }
+                    </td>
+                    <td>
+                        <button data-href="@Url.Action("CreateOrEdit", "Bookings", new { id = booking.ID, area = "Dashboard" })"
+                                class="btn btn-primary edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-pen"></i> Edytuj
+                        </button>
+                        <button data-href="@Url.Action("DeleteBooking", "Bookings", new { id = booking.ID, area = "Dashboard" })"
+                                class="btn btn-danger delete-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-trash"></i> Usuń
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">Nie znaleziono żadnych rezerwacji.</div>
+}

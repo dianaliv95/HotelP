@@ -1,0 +1,153 @@
+﻿@model Hotel.Areas.RestaurantManagement.ViewModels.DishesListingModel
+
+@{
+    ViewData["Title"] = "Dishes";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Dishes</h2>
+        <hr />
+    </div>
+</div>
+
+<!-- Formularz wyszukiwania i przycisk Create -->
+<div class="row mb-3">
+    <div class="col-lg-12">
+        <form method="get" asp-action="Index" asp-controller="Dishes" asp-area="RestaurantManagement">
+            <div class="input-group">
+                <input type="text" name="searchTerm" class="form-control" placeholder="Search Dishes" value="@Model.SearchTerm" />
+
+                <select name="categoryId" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.ID" @(category.ID == Model.SelectedCategoryId ? "selected" : "")>
+                            @category.Name
+                        </option>
+                    }
+                </select>
+
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Search
+                </button>
+                <a href="@Url.Action("Index", "Dishes", new { area = "RestaurantManagement" })" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                </a>
+                <button type="button" data-href="@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })"
+                        class="create-btn btn btn-outline-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#actionModal">
+                    <i class="fa-solid fa-plus mr-1"></i> Create
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista dań -->
+<div class="row">
+    <div class="col-lg-12">
+        @Html.Partial("_Listing", Model)
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Obsługa kliknięcia przycisku "Create"
+        $(document).on("click", ".create-btn", function () {
+            const url = $(this).data("href"); // Pobierz URL z przycisku
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data); // Załaduj dane do modal-a
+                $("#actionModal").modal("show"); // Wyświetl modal
+            }).fail(function () {
+                alert("Failed to load the Create form.");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku "Edit"
+        $(document).on("click", ".edit-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            }).fail(function () {
+                alert("Failed to load the Edit form.");
+            });
+        });
+
+        // Obsługa kliknięcia przycisku "Delete"
+        $(document).on("click", ".delete-btn", function () {
+            const url = $(this).data("href");
+            $.get(url, function (data) {
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
+            }).fail(function () {
+                alert("Failed to load the Delete form.");
+            });
+        });
+
+        // Skrypt dla przycisku "Save" w Create/Edit
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+
+            const formData = $("#createDishForm").serialize(); // Serializacja danych formularza
+
+            $.ajax({
+                url: '@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Dish has been successfully saved!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        $(".errorDiv").html(result.message || "An unknown error occurred.");
+                        alert("Error: " + (result.message || "Unknown error."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error status:", status);
+                    console.error("Error message:", error);
+                    console.error("Server response:", xhr.responseText);
+                    alert("An error occurred while saving data.");
+                }
+            });
+        });
+
+        // Skrypt dla przycisku "Delete" w Delete modal
+        $(document).on("click", "#deleteButton", function (e) {
+            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+
+            const formData = $("#deleteDishForm").serialize(); // Serializacja danych formularza
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Dishes", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Dish has been successfully deleted!");
+                        $("#actionModal").modal("hide"); // Ukryj modal
+                        location.reload(); // Odśwież stronę
+                    } else {
+                        alert("Error: " + (result.message || "Unknown error."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error status:", status);
+                    console.error("Error message:", error);
+                    console.error("Server response:", xhr.responseText);
+                    alert("An error occurred while deleting the record.");
+                }
+            });
+        });
+    </script>
+}

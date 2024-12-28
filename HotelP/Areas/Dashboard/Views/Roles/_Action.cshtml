@@ -1,0 +1,37 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.RoleActionModel
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">
+            @if (string.IsNullOrEmpty(Model.ID))
+            {
+                <span>Create Role</span>
+            }
+            else
+            {
+                <span>Edit Role</span>
+            }
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form id="createRoleForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ID" value="@Model.ID" /> <!-- Pole ID jest puste przy tworzeniu nowej roli -->
+            <div class="mb-3">
+                <label for="roleName" class="form-label">Role Name:</label>
+                <input type="text" class="form-control" id="roleName" name="Name" value="@Model.Name" required />
+            </div>
+        </form>
+        <div class="errorDiv"></div>
+
+    </div>
+    <div class="modal-footer">
+        <button id="saveButton" type="button" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> Save
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-xmark mr-1"></i> Close
+        </button>
+    </div>
+</div>

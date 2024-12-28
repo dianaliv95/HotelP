@@ -1,0 +1,106 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationPackageActionModel
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">
+            @if (Model.ID > 0)
+            {
+                <span>Edit Accommodation Package</span>
+            }
+            else
+            {
+                <span>Create Accommodation Package</span>
+            }
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form id="createAccommodationPackagesForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ID" value="@Model.ID" />
+            <div class="form-group">
+                <label>Accommodation Type</label>
+                <select class="form-control" name="AccommodationTypeID">
+                    <option value="">-- Select Accommodation Type --</option>
+                    @if (Model.AccommodationTypes != null)
+                    {
+                        foreach (var accommodationType in Model.AccommodationTypes)
+                        {
+                            <option value="@accommodationType.ID" @(accommodationType.ID == Model.AccommodationTypeID ? "selected" : string.Empty)>
+                                @accommodationType.Name
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="nameInput" class="form-label">Name</label>
+                <input type="text" class="form-control" id="nameInput" name="Name" placeholder="Enter Accommodation Package Name." value="@Model.Name" />
+            </div>
+            <div class="mb-3">
+                <label for="NoOfRoomInput" class="form-label">No Of Rooms</label>
+                <input type="text" class="form-control" id="NoOfRoomInput" name="NoOfRoom" placeholder="Enter No Of Rooms." value="@Model.NoOfRoom" />
+            </div>
+            <div class="mb-3">
+                <label for="FeePerNightInput" class="form-label">Fee Per Night</label>
+                <input type="text" class="form-control" id="FeePerNightInput" name="FeePerNight" placeholder="Enter Fee Per Night." value="@Model.FeePerNight" />
+            </div>
+        </form>
+
+        <div class="errorDiv"></div>
+    </div>
+    <div class="modal-footer">
+        <button id="saveButton" type="button" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> Save
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-xmark mr-1"></i> Close
+        </button>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
+
+            // Pobierz dane z formularza tworzenia/edycji
+            const formData = $("#createAccommodationTypeForm").serialize();
+
+            $.ajax({
+                url: '@Url.Action("Action", "AccommodationPackages")',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    console.log("Odpowiedź serwera:", result);
+                    if (result && result.success) {
+                        alert("Dane zostały zapisane pomyślnie!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
+                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Status błędu:", status);
+                    console.error("Treść błędu:", error);
+                    console.error("Odpowiedź serwera:", xhr.responseText);
+                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
+                }
+            });
+        });
+
+    </script>
+}
+
+
+
+
+
+
+
+
+

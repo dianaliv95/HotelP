@@ -1,0 +1,145 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationActionModel
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">
+            @if (Model.ID > 0)
+            {
+                <span>Edit Accommodation</span>
+            }
+            else
+            {
+                <span>Create Accommodation</span>
+            }
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form id="createAccommodationForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ID" value="@Model.ID" />
+
+            <!-- Select Package -->
+            <label for="packageSelect" class="form-label">Accommodation Package</label>
+            <select class="form-select" id="packageSelect" name="AccommodationPackageID" required>
+                <option value="">-- Select Accommodation Package --</option>
+                @if (Model.Packages != null && Model.Packages.Any())
+                {
+                    foreach (var package in Model.Packages)
+                    {
+                        <option value="@package.ID" @(package.ID == Model.AccommodationPackageID ? "selected" : "")>
+                            @package.Name
+                        </option>
+                    }
+                }
+                else
+                {
+                    <option value="">No packages available</option>
+                }
+            </select>
+            <div class="invalid-feedback">Please select a valid package.</div>
+
+            <!-- Name Input -->
+            <div class="mb-3">
+                <label for="nameInput" class="form-label">Name</label>
+                <input type="text" class="form-control" id="nameInput" name="Name" placeholder="Enter Accommodation Name" value="@Model.Name" required />
+                <div class="invalid-feedback">Please enter a valid name.</div>
+            </div>
+
+            <!-- Description Input -->
+            <div class="mb-3">
+                <label for="descriptionInput" class="form-label">Description</label>
+                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter Description">@Model.Description</textarea>
+                <div class="invalid-feedback">Please enter a description.</div>
+            </div>
+
+            <!-- Number of Rooms -->
+            <div class="mb-3">
+                <label for="numberOfRooms" class="form-label">Number of Rooms</label>
+                <input type="number" class="form-control" id="numberOfRooms" name="NumberOfRooms" min="1" step="1" value="@Model.NumberOfRooms" required />
+                <div class="invalid-feedback">Please enter a valid number of rooms.</div>
+            </div>
+
+            <!-- Max Guests -->
+            <div class="mb-3">
+                <label for="maxGuests" class="form-label">Maximum Number of Guests per Room</label>
+                <input type="number" class="form-control" id="maxGuests" name="MaxGuests" min="1" step="1" value="@Model.MaxGuests" required />
+                <div class="invalid-feedback">Please enter a valid maximum number of guests.</div>
+            </div>
+
+            <!-- Max Adults -->
+            <div class="mb-3">
+                <label for="maxAdults" class="form-label">Maximum Adults</label>
+                <input type="number" class="form-control" id="maxAdults" name="MaxAdults" min="1" step="1" value="@Model.MaxAdults" required />
+                <div class="invalid-feedback">Please enter a valid number of adults.</div>
+            </div>
+
+            <!-- Max Children -->
+            <div class="mb-3">
+                <label for="maxChildren" class="form-label">Maximum Children (under 4 years)</label>
+                <input type="number" class="form-control" id="maxChildren" name="MaxChildren" min="0" step="1" value="@Model.MaxChildren" required />
+                <div class="invalid-feedback">Please enter a valid number of children.</div>
+            </div>
+        </form>
+
+        <!-- Error Message -->
+        <div class="errorDiv text-danger mt-2"></div>
+    </div>
+    <div class="modal-footer">
+        <button id="saveButton" type="button" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Save
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-xmark me-1"></i> Close
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault();
+
+            const formData = $("#createAccommodationForm").serialize();
+
+            // Sprawdź, czy pakiet został wybrany
+            if (!$("#packageSelect").val()) {
+                alert("Please select a valid package.");
+                $("#packageSelect").addClass("is-invalid");
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Action", "Accommodations")',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    if (result && result.success) {
+                        alert("Accommodation saved successfully!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        $(".errorDiv").html(""); // Clear previous errors
+                        if (result.errors && result.errors.length > 0) {
+                            result.errors.forEach(error => {
+                                $(".errorDiv").append(`<div>${error}</div>`);
+                            });
+                        } else {
+                            $(".errorDiv").html(result.message || "An unknown error occurred.");
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                    $(".errorDiv").html("An error occurred while saving the accommodation.");
+                }
+            });
+        });
+
+        // Clear error messages when user starts typing
+        $(document).on("input change", "#createAccommodationForm input, #createAccommodationForm select, #createAccommodationForm textarea", function () {
+            $(this).removeClass("is-invalid");
+            $(".errorDiv").html(""); // Clear error messages
+        });
+    </script>
+}
