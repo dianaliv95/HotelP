@@ -7,10 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\HMS.Data\HMS.Data.csproj" />
-		<ProjectReference Include="..\HMS.Enities\HMS.Entities.csproj" />
-		<ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
-
+	  <ProjectReference Include="..\HMS.Data\HMS.Data.csproj" />
+	  <ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
 	</ItemGroup>
+
+	
 
 </Project>

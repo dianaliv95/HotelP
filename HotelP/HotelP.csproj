@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -25,11 +25,23 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="wwwroot\css\sass\.DS_Store" />
+	  <None Include="wwwroot\css\sass\bootstrap\.DS_Store" />
+	  <None Include="wwwroot\fonts\bootstrap\.DS_Store" />
+	  <None Include="wwwroot\fonts\flaticon\.DS_Store" />
+	  <None Include="wwwroot\fonts\icomoon\.DS_Store" />
+	  <None Include="wwwroot\lib\bootstrap\.DS_Store" />
+	  <None Include="wwwroot\lib\css\.DS_Store" />
+	  <None Include="wwwroot\lib\sass\.DS_Store" />
+	  <None Include="wwwroot\lib\sass\bootstrap\.DS_Store" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\HMS.Data\HMS.Data.csproj" />
 	  <ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
 	  <ProjectReference Include="..\HMS.Services\HMS.Services.csproj" />
-	  <ProjectReference Include="..\Hotel.ReceptionSystem\Hotel.ReceptionSystem.csproj" />
 	</ItemGroup>
+
 	
 
 	

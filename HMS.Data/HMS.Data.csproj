@@ -24,8 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\HMS.Enities\HMS.Entities.csproj" />
-		<ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
+	  <ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
 	</ItemGroup>
 
 </Project>
