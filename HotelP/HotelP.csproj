@@ -18,11 +18,8 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\HMS.Data\HMS.Data.csproj" />
-		<ProjectReference Include="..\HMS.Enities\HMS.Entities.csproj" />
 		<ProjectReference Include="..\HMS.Entities\HMS.Entities.csproj" />
 		<ProjectReference Include="..\HMS.Services\HMS.Services.csproj" />
-		<ProjectReference Include="..\Hotel.ReceptionSystem\Hotel.ReceptionSystem.csproj" />
-		<ProjectReference Include="..\Hotel.ReservationSystem\Hotel.ReservationSystem.csproj" />
 	</ItemGroup>
 
 	
