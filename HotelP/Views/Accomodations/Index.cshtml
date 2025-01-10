@@ -1,0 +1,132 @@
+﻿@model Hotel.ViewModels.AccommodationsViewModel
+
+<aside id="colorlib-hero">
+    <div class="flexslider">
+        <ul class="slides">
+            <li style="background-image: url('images/img_bg_5.jpg');">
+                <div class="overlay"></div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12 col-md-offset-3 slider-text">
+                            <div class="slider-text-inner slider-text-inner2 text-center">
+                                <h2>Choose our Best</h2>
+                                <h1>Rooms &amp; Suites</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+<!-- Sprawdzamy, czy model nie jest pusty i czy są pakiety -->
+@if (Model != null
+  && Model.AccommodationPackages != null
+  && Model.AccommodationPackages.Any())
+{
+    <div id="colorlib-rooms" class="colorlib-light-grey">
+        <div class="container">
+            <div class="row">
+
+                <!-- Dropdown z Bootstrap 3 -->
+                <div class="dropdown" style="margin-bottom:20px;">
+                    <button class="btn btn-default dropdown-toggle"
+                            type="button"
+                            id="dropdownMenu1"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="true">
+                        Select Accommodation Package
+                        <span class="caret"></span>
+                    </button>
+
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        @foreach (var package in Model.AccommodationPackages)
+                        {
+                            <li class="@(Model.SelectedAccommodationPackageID == package.ID ? "active" : "")">
+                                <a href="@Url.Action(
+    "Index",            // nazwa akcji
+    "Accomodations",    // nazwa kontrolera (klasa: AccomodationsController)
+    new {
+        area = "",  // wymusza brak area
+        accommodationTypeID = Model.AccommodationType?.ID,
+        accommodationPackageID = package.ID
+    })">
+                                    @package.Name
+                                </a>
+
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Lista zakwaterowań (Accommodations) -->
+                @if (Model.Accommodations != null && Model.Accommodations.Any())
+                {
+                    @foreach (var accommodation in Model.Accommodations)
+                    {
+                        <div class="col-md-4 room-wrap animate-box">
+                            <a href="images/room-1.jpg"
+                               class="room image-popup-link"
+                               style="background-image: url('images/room-1.jpg');">
+                            </a>
+                            <div class="desc text-center">
+                                <span class="rate-star">
+                                    <i class="icon-star-full full"></i>
+                                    <i class="icon-star-full full"></i>
+                                    <i class="icon-star-full full"></i>
+                                    <i class="icon-star-full"></i>
+                                    <i class="icon-star-full"></i>
+                                </span>
+                                <h3>
+                                    <a href="rooms-suites.html">
+                                        @accommodation.Name
+                                    </a>
+                                </h3>
+                                <p class="price">
+                                    <span class="currency">zł</span>
+                                    <span class="price-room">
+                                        @accommodation.AccommodationPackage.FeePerNight
+                                    </span>
+                                    <span class="per">/ za dobę</span>
+                                </p>
+                                <ul>
+                                    <li>
+                                       No. of Rooms:@accommodation.AccommodationPackage.NoofRoom
+                                    </li>
+                                </ul>
+                                <p>
+                                    <a class="btn btn-primary">Book now!</a>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Brak zakwaterowań -->
+                    <div class="col-xs-12" style="margin-top:30px;">
+                        <div class="alert alert-warning" role="alert">
+                            No Accommodation found.
+                        </div>
+                    </div>
+                }
+
+            </div> <!-- .row -->
+        </div> <!-- .container -->
+    </div> <!-- #colorlib-rooms -->
+}
+else
+{
+    <!-- Gdy brak pakietów albo Model jest pusty -->
+    <div class="container">
+        <div class="row" style="margin-top:30px;">
+            <div class="col-xs-12">
+                <div class="alert alert-warning" role="alert">
+                    No Accommodation found.
+                </div>
+            </div>
+        </div>
+    </div>
+}

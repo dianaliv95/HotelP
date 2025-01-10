@@ -14,41 +14,98 @@
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
+
     <div class="modal-body">
         <form id="createAccommodationPackagesForm">
             @Html.AntiForgeryToken()
+
+            <!-- ID pakietu -->
             <input type="hidden" name="ID" value="@Model.ID" />
-            <div class="form-group">
-                <label>Accommodation Type</label>
+
+            <!-- Pole: AccommodationTypeID -->
+            <div class="form-group mb-3">
+                <label class="form-label">Accommodation Type</label>
                 <select class="form-control" name="AccommodationTypeID">
                     <option value="">-- Select Accommodation Type --</option>
                     @if (Model.AccommodationTypes != null)
                     {
                         foreach (var accommodationType in Model.AccommodationTypes)
                         {
-                            <option value="@accommodationType.ID" @(accommodationType.ID == Model.AccommodationTypeID ? "selected" : string.Empty)>
+                            <option value="@accommodationType.ID"
+                            @(accommodationType.ID == Model.AccommodationTypeID ? "selected" : null)>
                                 @accommodationType.Name
                             </option>
                         }
                     }
                 </select>
             </div>
+
+            <!-- Pole: Name -->
             <div class="mb-3">
                 <label for="nameInput" class="form-label">Name</label>
-                <input type="text" class="form-control" id="nameInput" name="Name" placeholder="Enter Accommodation Package Name." value="@Model.Name" />
+                <input type="text"
+                       class="form-control"
+                       id="nameInput"
+                       name="Name"
+                       placeholder="Enter Accommodation Package Name."
+                       value="@Model.Name" />
             </div>
+
+            <!-- Pole: NoOfRoom -->
             <div class="mb-3">
                 <label for="NoOfRoomInput" class="form-label">No Of Rooms</label>
-                <input type="text" class="form-control" id="NoOfRoomInput" name="NoOfRoom" placeholder="Enter No Of Rooms." value="@Model.NoOfRoom" />
+                <input type="text"
+                       class="form-control"
+                       id="NoOfRoomInput"
+                       name="NoOfRoom"
+                       placeholder="Enter No Of Rooms."
+                       value="@Model.NoOfRoom" />
             </div>
+
+            <!-- Pole: FeePerNight -->
             <div class="mb-3">
                 <label for="FeePerNightInput" class="form-label">Fee Per Night</label>
-                <input type="text" class="form-control" id="FeePerNightInput" name="FeePerNight" placeholder="Enter Fee Per Night." value="@Model.FeePerNight" />
+                <input type="text"
+                       class="form-control"
+                       id="FeePerNightInput"
+                       name="FeePerNight"
+                       placeholder="Enter Fee Per Night."
+                       value="@Model.FeePerNight" />
+            </div>
+
+            <!-- Pole: Pictures (input typu file) -->
+            <div class="mb-3">
+                <label class="form-label">Pictures</label>
+                <input id="selectPictures"
+                       class="form-control"
+                       name="Picture"
+                       type="file"
+                       multiple />
+
+                <!-- Ukryte pole do przechowywania ID-ów wczytanych zdjęć -->
+                <input type="hidden" name="PictureIDs" id="pictureIDs" value="" />
+            </div>
+
+            <!-- Sekcja podglądu wgranych zdjęć -->
+            <div id="picturesArea" class="mb-3">
+                @if (Model.AccommodationPackagePictures != null && Model.AccommodationPackagePictures.Count() > 0)
+                {
+                    foreach (var pic in Model.AccommodationPackagePictures)
+                    {
+                        <img src="/images/site/@pic.Picture.URL"
+                             class="img-fluid"
+                             style="width:200px; margin:5px;"
+                             onclick="removeMe(this)"
+                             data-id="@pic.PictureID" />
+                    }
+                }
             </div>
         </form>
 
-        <div class="errorDiv"></div>
+        <!-- Sekcja błędów -->
+        <div class="errorDiv text-danger"></div>
     </div>
+
     <div class="modal-footer">
         <button id="saveButton" type="button" class="btn btn-primary">
             <i class="fa-solid fa-floppy-disk mr-1"></i> Save
@@ -60,47 +117,12 @@
 </div>
 
 
-
-@section Scripts {
-    <script>
-        $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
-
-            // Pobierz dane z formularza tworzenia/edycji
-            const formData = $("#createAccommodationTypeForm").serialize();
-
-            $.ajax({
-                url: '@Url.Action("Action", "AccommodationPackages")',
-                type: 'POST',
-                data: formData,
-                success: function (result) {
-                    console.log("Odpowiedź serwera:", result);
-                    if (result && result.success) {
-                        alert("Dane zostały zapisane pomyślnie!");
-                        $("#actionModal").modal("hide");
-                        location.reload();
-                    } else {
-                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
-                        alert("Błąd: " + (result.message || "Nieznany błąd."));
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Status błędu:", status);
-                    console.error("Treść błędu:", error);
-                    console.error("Odpowiedź serwera:", xhr.responseText);
-                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
-                }
-            });
-        });
-
-    </script>
-}
-
-
-
-
-
-
-
+<!-- Szablon "ukryty" do klonowania w JS (opcjonalnie) -->
+<div id="imageTemplate" style="display:none;">
+    <img src=""
+         class="img-fluid"
+         style="width:200px; margin:5px;"
+         onclick="removeMe(this)" />
+</div>
 
 

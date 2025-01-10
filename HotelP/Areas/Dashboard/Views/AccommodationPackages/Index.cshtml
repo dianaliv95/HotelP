@@ -9,11 +9,11 @@
 </div>
 
 <div class="row mb-3">
-    <div class="col-lg-12">        
+    <div class="col-lg-12">
         <form>
             <div class="input-group">
                 <input type="text" name="searchterm" class="form-control" placeholder="Search." value="@Model.SearchTerm" />
-                
+
                 @if (Model.AccommodationTypes != null && Model.AccommodationTypes.Count() > 0)
                 {
                     <select name="AccommodationTypeID" class="form-control">
@@ -28,8 +28,8 @@
                 }
 
                 <div class="input-group-append">
-                <button class="btn btn-outline-primary" type="submit"> <i class="fa-solid fa-magnifying-glass mr-1"></i> Search</button>
-                <a href="@Url.Action("Index", "AccommodationPackages")" class="btn btn-outline-secondary"> <i class="fa-solid fa-rotate-right mr-1"></i> Reset </a>
+                    <button class="btn btn-outline-primary" type="submit"> <i class="fa-solid fa-magnifying-glass mr-1"></i> Search</button>
+                    <a href="@Url.Action("Index", "AccommodationPackages")" class="btn btn-outline-secondary"> <i class="fa-solid fa-rotate-right mr-1"></i> Reset </a>
                     <button data-href="@Url.Action("Action", "AccommodationPackages", new { area = "Dashboard" })"
                             class="btn btn-outline-success create-btn"
                             type="button"
@@ -37,7 +37,7 @@
                             data-bs-target="#actionModal">
                         <i class="fa-solid fa-plus mr-1"></i> Create
                     </button>
-            </div>
+                </div>
             </div>
         </form>
     </div>
@@ -59,77 +59,59 @@
 
 @section Scripts {
     <script>
-        // Obsługa kliknięcia przycisku "Create"
-        $(document).on("click", ".create-btn", function () {
+
+        //---------------------------------------------------
+        // A. Obsługa przycisków Create / Edit / Delete
+        //---------------------------------------------------
+        // Zależnie od Twojego kodu, przypisz odpowiednie selektory (np. .create-btn, .edit-btn, .delete-btn)
+
+        // Przykład: wczytuje partial do modala przy kliknięciu "Create"
+        $(document).on("click", ".create-btn", function (e) {
+            e.preventDefault();
             const url = $(this).data("href");
-            $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data);
+
+            $.get(url, function (responseHtml) {
+                $("#actionModal .modal-dialog").html(responseHtml);
                 $("#actionModal").modal("show");
             });
         });
 
-        // Obsługa kliknięcia przycisku "Edit"
-        $(document).on("click", ".edit-btn", function () {
+        // Analogicznie przy "Edit"
+        $(document).on("click", ".edit-btn", function (e) {
+            e.preventDefault();
             const url = $(this).data("href");
-            $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data);
+
+            $.get(url, function (responseHtml) {
+                $("#actionModal .modal-dialog").html(responseHtml);
                 $("#actionModal").modal("show");
             });
         });
 
-        // Obsługa kliknięcia przycisku "Delete"
-        $(document).on("click", ".delete-btn", function () {
+        // Analogicznie przy "Delete"
+        $(document).on("click", ".delete-btn", function (e) {
+            e.preventDefault();
             const url = $(this).data("href");
-            $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data);
+
+            $.get(url, function (responseHtml) {
+                $("#actionModal .modal-dialog").html(responseHtml);
                 $("#actionModal").modal("show");
             });
         });
 
-        // Skrypt dla przycisku "Save" w Create/Edit
-        $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
-
-            const formData = $("#createAccommodationPackagesForm").serialize(); // Serializacja danych formularza
-
-            $.ajax({
-                url: '@Url.Action("Action", "AccommodationPackages")', // Adres akcji kontrolera
-                type: 'POST',
-                data: formData,
-                success: function (result) {
-                    if (result && result.success) {
-                        alert("Dane zostały zapisane pomyślnie!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
-                    } else {
-                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
-                        alert("Błąd: " + (result.message || "Nieznany błąd."));
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Status błędu:", status);
-                    console.error("Treść błędu:", error);
-                    console.error("Odpowiedź serwera:", xhr.responseText);
-                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
-                }
-            });
-        });
-
-        // Skrypt dla przycisku "Delete" w Delete modal
+        // Obsługa potwierdzenia usunięcia (przycisk "Delete" wewnątrz modala)
         $(document).on("click", "#deleteButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
-
-            const formData = $("#deleteAccommodationPackagesForm").serialize(); // Serializacja danych formularza
+            e.preventDefault();
+            const formData = $("#deleteAccommodationPackagesForm").serialize();
 
             $.ajax({
-                url: '@Url.Action("Delete", "AccommodationPackages")', // Adres akcji kontrolera
+                url: '@Url.Action("Delete", "AccommodationPackages")',
                 type: 'POST',
                 data: formData,
                 success: function (result) {
                     if (result && result.success) {
                         alert("Rekord został pomyślnie usunięty!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
+                        $("#actionModal").modal("hide");
+                        location.reload();
                     } else {
                         alert("Błąd: " + (result.message || "Nieznany błąd."));
                     }
@@ -142,5 +124,122 @@
                 }
             });
         });
+
+
+        //---------------------------------------------------
+        // B. Upload plików (#selectPictures) -> Dashboard/UploadPictures
+        //---------------------------------------------------
+        $(document).on("change", "#selectPictures", function () {
+            console.log("Zmiana pliku w input#selectPictures. Pliki:", this.files);
+
+            var pictures = this.files;
+            var formData = new FormData();
+
+            for (var i = 0; i < pictures.length; i++) {
+                console.log("Dodaję do formData plik:", pictures[i].name);
+                // Klucz "Picture" -> [FromForm] List<IFormFile> Picture w kontrolerze
+                formData.append("Picture", pictures[i]);
+            }
+
+            $.ajax({
+                url: '@Url.Action("UploadPictures", "Dashboard", new { area = "Dashboard" })',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false
+            })
+                .done(function (response) {
+                    console.log("== Odpowiedź serwera (UploadPictures) ==", response);
+
+                    // Zakładam, że response to tablica obiektów: [{ id=..., url=... }, ...]
+                    for (var i = 0; i < response.length; i++) {
+                        var pic = response[i];
+                        console.log("Dodaję #picturesArea obrazek o ID =", pic.id, ", url =", pic.url);
+
+                        // W partialu `_Action.cshtml` powinieneś mieć <div id="imageTemplate" style="display:none;"> z <img>
+                        // Tworzymy klona:
+                        var $template = $("#imageTemplate").clone();
+                        $template.removeAttr("id");
+                        $template.show();
+
+                        // Ustawiamy src, data-id, itp.
+                        $template.find("img").attr("src", "/images/site/" + pic.url);
+                        $template.find("img").attr("data-id", pic.id);
+
+                        // Doklejamy do #picturesArea
+                        $("#picturesArea").append($template.html());
+                    }
+                })
+                .fail(function (xhr, status, error) {
+                    alert("Błąd przy uploadzie plików!");
+                    console.error("== Odpowiedź serwera (UploadPictures Error) ==");
+                    console.error("Status:", status);
+                    console.error("Error:", error);
+                    console.error("Response text:", xhr.responseText);
+                });
+        });
+
+
+        //---------------------------------------------------
+        // C. Kliknięcie przycisku #saveButton -> AccommodationPackages/Action
+        //---------------------------------------------------
+        $(document).on("click", "#saveButton", function (e) {
+            e.preventDefault();
+            console.log("== Zdarzenie #saveButton kliknięte ==");
+
+            // 1. Zbieramy ID-y obrazków:
+            var pictureIDs = [];
+            $("#picturesArea img").each(function () {
+                var picID = $(this).attr("data-id");
+                console.log("Znaleziono obrazek z data-id =", picID);
+                if (picID) {
+                    pictureIDs.push(picID);
+                }
+            });
+
+            // 2. Wpisujemy do hidden #pictureIDs
+            $("#pictureIDs").val(pictureIDs.join());
+            console.log("Ustawiam #pictureIDs =", $("#pictureIDs").val());
+
+            // 3. Serializacja formularza
+            var formData = $("#createAccommodationPackagesForm").serialize();
+            console.log("Seryjalizacja formularza:\n", formData);
+
+            // 4. AJAX
+            $.ajax({
+                url: '@Url.Action("Action", "AccommodationPackages")',
+                type: 'POST',
+                data: formData,
+                success: function (result) {
+                    console.log("== Odpowiedź serwera (success) ==", result);
+
+                    if (result && result.success) {
+                        alert("Dane zostały zapisane pomyślnie!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
+                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("== Odpowiedź serwera (error) ==");
+                    console.error("Status błędu:", status);
+                    console.error("Treść błędu:", error);
+                    console.error("Odpowiedź serwera:", xhr.responseText);
+                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
+                }
+            });
+        });
+
+
+        //---------------------------------------------------
+        // D. Funkcja removeMe -> usuwanie <img> z #picturesArea
+        //---------------------------------------------------
+        window.removeMe = function (element) {
+            console.log("Usuwam obrazek z data-id =", $(element).attr("data-id"));
+            $(element).remove();
+        };
+
     </script>
 }

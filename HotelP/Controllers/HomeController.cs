@@ -1,32 +1,45 @@
+using HMS.Services;
 using Hotel.Models;
+using Hotel.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Hotel.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly AccommodationTypesService _accommodationTypesService;
+        private readonly AccommodationPackagesService _accommodationPackagesService;
 
-        public HomeController(ILogger<HomeController> logger)
+        // Konstruktor z wstrzykiwaniem us³ug
+        public HomeController(
+            ILogger<HomeController> logger,
+            AccommodationTypesService accommodationTypesService,
+            AccommodationPackagesService accommodationPackagesService)
         {
             _logger = logger;
+            _accommodationTypesService = accommodationTypesService;
+            _accommodationPackagesService = accommodationPackagesService;
         }
 
-        public IActionResult Index()
+        // Oznaczamy metodê jako async i zmieniamy typ zwracany na Task<IActionResult>
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
+            // Tworzymy nasz model do widoku
+            var model = new HomeViewModel();
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+            // Pobieramy listy z serwisów
+            // - Synchronicznie:
+            model.AccommodationTypes = _accommodationTypesService.GetAllAccommodationTypes();
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // - Asynchronicznie, wiêc u¿ywamy await
+            model.AccommodationPackages = await _accommodationPackagesService.GetAllAccommodationPackagesAsync();
+
+            // Przekazujemy do widoku
+            return View(model);
         }
     }
 }

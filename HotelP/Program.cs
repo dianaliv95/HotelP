@@ -9,26 +9,26 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("HMSConnection")
-    ?? throw new InvalidOperationException("Connection string 'HMSConnection' not found.");
+	?? throw new InvalidOperationException("Connection string 'HMSConnection' not found.");
 
 
 // Konfiguracja DbContext dla HMSContext
 builder.Services.AddDbContext<HMSContext>(options =>
-    options.UseSqlServer(connectionString)
-           .EnableSensitiveDataLogging() // Tylko w œrodowiskach deweloperskich
-           .LogTo(Console.WriteLine, LogLevel.Information));
+	options.UseSqlServer(connectionString)
+		   .EnableSensitiveDataLogging() // Tylko w œrodowiskach deweloperskich
+		   .LogTo(Console.WriteLine, LogLevel.Information));
 
 builder.Services.AddDbContext<HMSContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Dodanie Identity z User i Role
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false; // Logowanie bez weryfikacji e-mail
-    options.Password.RequireDigit = true;          // Wymagana cyfra w haœle
-    options.Password.RequiredLength = 6;           // Minimalna d³ugoœæ has³a
-    options.Password.RequireUppercase = false;     // Bez wymogu wielkich liter
-    options.Password.RequireNonAlphanumeric = false; // Bez wymogu znaków specjalnych
+	options.SignIn.RequireConfirmedAccount = false; // Logowanie bez weryfikacji e-mail
+	options.Password.RequireDigit = true;          // Wymagana cyfra w haœle
+	options.Password.RequiredLength = 6;           // Minimalna d³ugoœæ has³a
+	options.Password.RequireUppercase = false;     // Bez wymogu wielkich liter
+	options.Password.RequireNonAlphanumeric = false; // Bez wymogu znaków specjalnych
 })
 .AddEntityFrameworkStores<HMSContext>()
 .AddDefaultUI()
@@ -37,9 +37,9 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 // Konfiguracja uwierzytelniania
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+	options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+	options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+	options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
 });
 
 // Rejestracja kontrolerów i widoków
@@ -59,6 +59,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<RoomService>();
+builder.Services.AddScoped<DashboardService>();
+
 
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -70,13 +72,13 @@ var app = builder.Build();
 // Konfiguracja potoku HTTP
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
-    app.UseMigrationsEndPoint();
+	app.UseDeveloperExceptionPage();
+	app.UseMigrationsEndPoint();
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+	app.UseExceptionHandler("/Home/Error");
+	app.UseHsts();
 }
 
 // Middleware obs³ugi HTTP
@@ -89,14 +91,27 @@ app.UseRouting();
 app.UseAuthentication(); // Obs³uga uwierzytelniania
 app.UseAuthorization();  // Obs³uga autoryzacji
 
-// Definicja routingu
 app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+	name: "Accomodations",
+	pattern: "Accomodations/{action=Index}/{id?}",
+	defaults: new
+	{
+		controller = "Accomodations",
+		action = "Index",
+		area = ""   // <-- to kluczowe, by nie zaci¹ga³ obszaru
+	}
+);
+
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+	name: "areas",
+	pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+	name: "default",
+	pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
 
 app.MapRazorPages();
 
