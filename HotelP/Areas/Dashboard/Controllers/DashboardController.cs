@@ -1,5 +1,6 @@
 ﻿using HMS.Entities;
 using HMS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 namespace Hotel.Areas.Dashboard.Controllers
 {
 	[Area("Dashboard")]
+	
 	public class DashboardController : Controller
 	{
 		private readonly IWebHostEnvironment _hostingEnvironment;

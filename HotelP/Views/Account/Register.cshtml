@@ -1,5 +1,10 @@
 ﻿@model Hotel.Models.RegisterViewModel
 
+@{
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+    ViewData["Title"] = "Rejestracja";
+}
+
 <h2>Rejestracja</h2>
 
 <form asp-action="Register" method="post">
@@ -18,5 +23,11 @@
         <input asp-for="ConfirmPassword" type="password" />
         <span asp-validation-for="ConfirmPassword"></span>
     </div>
-    <button type="submit">Zarejestruj</button>
+    <button type="submit" class="btn btn-success">Zarejestruj</button>
 </form>
+
+<!-- Powrót do logowania -->
+<hr />
+<a asp-action="Login" asp-controller="Account" class="btn btn-link">
+    Masz już konto? Zaloguj się
+</a>
