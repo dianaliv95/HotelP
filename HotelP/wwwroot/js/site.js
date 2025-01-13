@@ -1,4 +1,10 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿$(".changeAccommodationType").on("click", function () {
+    // Pobieramy wartość atrybutu data-id
+    var accommodationTypeID = $(this).data("id");
 
-// Write your JavaScript code.
+    // Ukrywamy wszystkie kontenery (div) dla typów
+    $(".accommodationTypesRow").hide();
+
+    // Pokazujemy tylko ten kontener, który ma data-id równy pobranemu typowi
+    $("div.accommodationTypesRow[data-id='" + accommodationTypeID + "']").show();
+});

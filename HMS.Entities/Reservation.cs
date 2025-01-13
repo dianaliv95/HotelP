@@ -96,5 +96,8 @@ namespace HMS.Entities
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        // Nowe pola (opcjonalne)
+        public string? ContactPhone { get; set; } // Numer kontaktowy
+        public string? ContactEmail { get; set; } // Adres e-mail
     }
 }

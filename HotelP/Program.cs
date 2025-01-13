@@ -91,6 +91,7 @@ app.UseRouting();
 app.UseAuthentication(); // Obs³uga uwierzytelniania
 app.UseAuthorization();  // Obs³uga autoryzacji
 
+
 app.MapControllerRoute(
 	name: "Accomodations",
 	pattern: "Accomodations/{action=Index}/{id?}",

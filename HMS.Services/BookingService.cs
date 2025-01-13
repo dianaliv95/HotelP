@@ -174,9 +174,9 @@ namespace HMS.Services
                 existing.PaymentMethod = reservation.PaymentMethod;
                 existing.Status = reservation.Status;
                 existing.UpdatedAt = DateTime.Now;
-               
-                
-                
+
+
+
                 // Gdy rezerwacja zakończona
                 var finishedStatuses = new[]
                 {

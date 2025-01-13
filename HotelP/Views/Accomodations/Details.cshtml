@@ -1,14 +1,22 @@
 ﻿@model Hotel.ViewModels.AccommodationPackageDetailsViewModel
 
 @{
-    // Pobranie pierwszego (miniatury) obrazka, lub default jeśli brak
-    var thumbnailPicture = Model.AccommodationPackage.AccomodationPackagePictures != null
-        ? Model.AccommodationPackage.AccomodationPackagePictures.FirstOrDefault()
-        : null;
+    // Bezpiecznie pobieramy pierwsze zdjęcie:
+    // 1) Może być null sam model (Model)
+    // 2) Może być null Model.AccommodationPackage
+    // 3) Może być null kolekcja AccomodationPackagePictures
+    // 4) Może być pusta lista
+    // 5) Może być null w polu .Picture
 
-    var thumbnailURL = thumbnailPicture != null
-        ? thumbnailPicture.Picture.URL
-        : "default-image.jpg";
+    var thumbnailPicture = Model?.AccommodationPackage?.AccomodationPackagePictures?.FirstOrDefault();
+    var thumbnailURL = thumbnailPicture?.Picture?.URL ?? "default-image.jpg";
+
+    // Dodatkowe skróty:
+    var packageName = Model?.AccommodationPackage?.Name ?? "No name";
+    var typeName = Model?.AccommodationPackage?.AccommodationType?.Name ?? "No type";
+    var fee = Model?.AccommodationPackage?.FeePerNight ?? 0;
+    var noOfRoom = Model?.AccommodationPackage?.NoofRoom ?? 0;
+    var typeDescription = Model?.AccommodationPackage?.AccommodationType?.Description ?? "No description";
 }
 
 <aside id="colorlib-hero">
@@ -21,8 +29,9 @@
                         <div class="col-md-6 col-sm-12 col-md-offset-3 slider-text">
                             <div class="slider-text-inner slider-text-inner2 text-center">
                                 <h2>Accommodation Package</h2>
-                                <h1>@Model.AccommodationPackage.Name</h1>
-                                <h2>@Model.AccommodationPackage.AccommodationType.Name</h2>
+                                <!-- Bezpieczne wyświetlanie nazwy -->
+                                <h1>@packageName</h1>
+                                <h2>@typeName</h2>
                             </div>
                         </div>
                     </div>
@@ -40,31 +49,32 @@
                     <p class="price">
                         <span class="currency">$</span>
                         <span class="price-room">
-                            @Model.AccommodationPackage.FeePerNight
+                            @fee
                         </span>
                         <span class="per">/ per night</span>
                     </p>
-                    <strong>Rooms: @Model.AccommodationPackage.NoofRoom</strong>
+                    <strong>Rooms: @noOfRoom</strong>
                     <p>
-                        @Model.AccommodationPackage.AccommodationType.Description
+                        @typeDescription
                     </p>
                 </div>
 
+                <!-- Główne zdjęcie -->
                 <div class="amenities-img animate-box"
                      style="height:400px; background-image: url('/images/site/@thumbnailURL');">
                 </div>
 
-                @if (Model.AccommodationPackage.AccomodationPackagePictures != null
+                @* Jeśli mamy listę pozostałych zdjęć, wyświetl je *@
+                @if (Model?.AccommodationPackage?.AccomodationPackagePictures != null
                 && Model.AccommodationPackage.AccomodationPackagePictures.Count > 0)
                 {
-                    // Wyświetlamy pozostałe zdjęcia (inne niż miniatura)
-                    foreach (var picture in Model.AccommodationPackage
+                    foreach (var pic in Model.AccommodationPackage
                     .AccomodationPackagePictures
                     .Where(x => x != thumbnailPicture))
                     {
+                        var picURL = pic?.Picture?.URL ?? "default-image.jpg";
                         <div class="amenities-img animate-box"
-                             style="height:400px;
-                                    background-image: url('/images/site/@picture.Picture.URL');">
+                             style="height:400px; background-image: url('/images/site/@picURL');">
                         </div>
                     }
                 }
@@ -83,8 +93,8 @@
                 <h3>Get In Touch</h3>
 
                 <form action="#" id="frmConfirmBooking">
-                    <!-- ID pakietu w hidden -->
-                    <input type="hidden" name="AccommodationPackageID" value="@Model.AccommodationPackage.ID" />
+                    <!-- ID pakietu w hidden; jeśli Model albo package jest null, to 0 -->
+                    <input type="hidden" name="AccommodationPackageID" value="@Model?.AccommodationPackage?.ID ?? 0" />
 
                     <div class="row form-group">
                         <div class="col-md-6">
@@ -148,7 +158,7 @@
     </div>
 </div>
 
-<!-- Skrypt do obsługi datapicker i sprawdzenia dostępności -->
+<!-- Skrypt do obsługi DatePicker i sprawdzenia dostępności -->
 <script>
     // Datepicker
     $('#FromDate').datepicker({
@@ -159,13 +169,13 @@
     // Kliknięcie "Check Availability"
     $('#btnCheckAvailability').click(function () {
         $.ajax({
-            url: '@Url.Action("CheckAvailability", "Accommodations")',
+            url: '@Url.Action("CheckAvailability", "Accomodations")',
             data: $("#frmConfirmBooking").serialize()
         })
-        .done(function (response) {
-            // Wyświetlenie odpowiedzi w modalu "actionModal"
-            $("#actionModal .modal-dialog").html(response);
-            $("#actionModal").modal("show"); // jeżeli chcesz pokazać modal
-        });
+            .done(function (response) {
+                // Wyświetlenie odpowiedzi w modalu "actionModal"
+                $("#actionModal .modal-dialog").html(response);
+                $("#actionModal").modal("show");
+            });
     });
 </script>

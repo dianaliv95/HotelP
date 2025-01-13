@@ -62,6 +62,7 @@
                         @totalPrice.ToString("C", System.Globalization.CultureInfo.CreateSpecificCulture("pl-PL"))
                     </td>
                     <td>@booking.Status.GetDisplayName()</td>
+
                     <td>
                         @if (booking.IsPaid)
                         {

@@ -22,8 +22,8 @@
 
 <!-- Sprawdzamy, czy model nie jest pusty i czy są pakiety -->
 @if (Model != null
-  && Model.AccommodationPackages != null
-  && Model.AccommodationPackages.Any())
+ && Model.AccommodationPackages != null
+ && Model.AccommodationPackages.Any())
 {
     <div id="colorlib-rooms" class="colorlib-light-grey">
         <div class="container">
@@ -93,12 +93,16 @@
                                 </p>
                                 <ul>
                                     <li>
-                                       No. of Rooms:@accommodation.AccommodationPackage.NoofRoom
+                                        No. of Rooms:@accommodation.AccommodationPackage.NoofRoom
                                     </li>
                                 </ul>
                                 <p>
-                                    <a class="btn btn-primary">Book now!</a>
+                                    <a class="btn btn-primary"
+                                       href="@Url.Action("Details", "Accomodations", new { accomodationPackageID = accommodation.AccommodationPackage.ID })">
+                                        Szczegóły
+                                    </a>
                                 </p>
+
                             </div>
                         </div>
                     }

@@ -102,6 +102,8 @@ namespace Hotel.Areas.Dashboard.Controllers
 
                     FirstName = existing.FirstName,
                     LastName = existing.LastName,
+                    ContactPhone = existing.ContactPhone,
+                    ContactEmail = existing.ContactEmail,
                     FromDate = existing.DateFrom,
                     DateTo = existing.DateTo,
                     AdultCount = existing.AdultCount,
@@ -251,6 +253,8 @@ namespace Hotel.Areas.Dashboard.Controllers
                        .GetRoomByIdAsync(model.RoomID.Value)).AccommodationID;
                 existing.FirstName = model.FirstName;
                 existing.LastName = model.LastName;
+                existing.ContactPhone = model.ContactPhone;
+                existing.ContactEmail = model.ContactEmail;
                 existing.DateFrom = model.FromDate;
                 existing.DateTo = model.DateTo;
                 existing.AdultCount = model.AdultCount;
@@ -266,9 +270,11 @@ namespace Hotel.Areas.Dashboard.Controllers
                 existing.IsPaid = model.IsPaid;
                 existing.PaymentMethod = model.PaymentMethod;
                 existing.Status = model.Status;
-               
+
+
+
                 // Nie nadpisujemy statusu z modelu, **albo** robimy to PRZED warunkiem if:
-               existing.UpdatedAt = DateTime.Now;
+                existing.UpdatedAt = DateTime.Now;
 
 
 
@@ -287,6 +293,8 @@ namespace Hotel.Areas.Dashboard.Controllers
                     AccommodationID = room.AccommodationID,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
+                    ContactPhone = model.ContactPhone,
+                    ContactEmail = model.ContactEmail,
                     DateFrom = model.FromDate,
                     DateTo = model.DateTo,
                     AdultCount = model.AdultCount,
@@ -305,7 +313,7 @@ namespace Hotel.Areas.Dashboard.Controllers
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
-                
+
                 // Zapis w serwisie
                 await _bookingService.CreateReservationAsync(newReservation);
 

@@ -55,7 +55,7 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public PaymentMethod? PaymentMethod { get; set; }
         public ReservationStatus Status { get; set; }
 
-        
+
         public decimal TotalPrice { get; set; }
 
         // Czas trwania w dniach – można liczyć w locie:
@@ -63,5 +63,7 @@ namespace Hotel.Areas.Dashboard.ViewModels
 
         // Dla ewentualnego widoku
         public Room Room { get; set; }
+        public string? ContactPhone { get; set; } // Numer kontaktowy
+        public string? ContactEmail { get; set; } // Adres e-mail
     }
 }

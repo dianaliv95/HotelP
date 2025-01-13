@@ -59,6 +59,18 @@
                    value="@Model.DateTo.ToString("yyyy-MM-dd")"
                    required />
         </div>
+        <!-- Numer kontaktowy (opcjonalny) -->
+        <div class="mb-3">
+            <label class="form-label">Numer kontaktowy</label>
+            <input type="text" class="form-control" name="ContactPhone" value="@Model.ContactPhone" />
+        </div>
+
+        <!-- E-mail (opcjonalny) -->
+        <div class="mb-3">
+            <label class="form-label">Adres e-mail</label>
+            <input type="email" class="form-control" name="ContactEmail" value="@Model.ContactEmail" />
+        </div>
+
 
         <!-- Liczba dorosłych i dzieci -->
         <!-- Liczba dorosłych -->

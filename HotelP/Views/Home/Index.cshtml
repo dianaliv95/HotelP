@@ -158,79 +158,94 @@
 	</div>
 </div>
 
-@if (Model.AccommodationTypes != null && Model.AccommodationTypes.Count() > 0)
+@if (Model.AccommodationTypes != null && Model.AccommodationTypes.Any()
+							&& Model.AccommodationPackages != null && Model.AccommodationPackages.Any())
 {
 	<div id="colorlib-rooms" class="colorlib-light-grey">
 		<div class="container">
+			<!-- (1) NAGŁÓWEK i PRZYCISKI DO WYBORU TYPU - WYWYŚWIETLANY TYLKO RAZ -->
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3 text-center colorlib-heading animate-box">
-					<span><i class="icon-star-full"></i><i class="icon-star-full"></i><i class="icon-star-full"></i><i class="icon-star-full"></i><i class="icon-star-full"></i></span>
+					<span>
+						<i class="icon-star-full"></i><i class="icon-star-full"></i>
+						<i class="icon-star-full"></i><i class="icon-star-full"></i>
+						<i class="icon-star-full"></i>
+					</span>
 					<h2>Accomodations</h2>
 					<p>Select Accomodation Type</p>
 					<p>
-						@foreach (var xAccomodationType in Model.AccommodationTypes)
+						@foreach (var xType in Model.AccommodationTypes)
 						{
-							<button class="btn btn-sm changeAccomodationType" data-id="@xAccomodationType.ID">
-								@xAccomodationType.Name
+							<button class="btn btn-sm changeAccommodationType"
+									data-id="@xType.ID">
+								@xType.Name
 							</button>
 						}
 					</p>
 				</div>
 			</div>
 
-			<div class="row">
-				<div class="col-md-12 animate-box">
-					<div class="owl-carousel owl-carousel2">
+			<!-- (2) PĘTLA PO TYPACH: generujemy jedną sekcję .accommodationTypesRow NA KAŻDY TYP -->
+			@{
+				var i = 0; // steruje tym, że pierwszy typ jest widoczny, reszta np. ukryta
+			}
 
-						@foreach (var accommodationType in Model.AccommodationTypes)
-						{
-							<div class="item">
-								<!-- Tu jakieś zdjęcie -->
-								<a href="images/room-1.jpg" class="room image-popup-link"
-								   style="background-image: url('images/room-1.jpg');">
-								</a>
+			@foreach (var type in Model.AccommodationTypes)
+			{
+				<div class="row accommodationTypesRow"
+					 data-id="@type.ID"
+					 style="@(i != 0 ? "display:none" : "")">
 
-								<div class="desc text-center">
-									<h3>
-										<!-- Poprawione: link z href i wyświetlanie nazwy -->
-										<a href="@Url.Action("Index",
-                                                            "Accomodations",
-                                                            new {
-                                                                area = "",
-                                                                AccommodationTypeID = accommodationType.ID
-                                                            })">
-											@accommodationType.Name
-										</a>
-									</h3>
+					<div class="col-md-12 animate-box">
+						<div class="owl-carousel owl-carousel2">
+							@foreach (var package in Model.AccommodationPackages
+												.Where(p => p.AccommodationTypeID == type.ID))
+							{
+								// Dla każdego package ustalamy miniaturę
+								var thumbnail = package.AccomodationPackagePictures
+								?.FirstOrDefault()?.Picture?.URL
+								?? "default-image.jpg";
 
-									<p class="price">
-										<!-- Wyświetlamy opis lub dowolne inne dane -->
-										@accommodationType.Description
-									</p>
+								<div class="item">
+									<!-- Link do szczegółów pakietu:
+										 nazwa i cena (FeePerNight) -->
+									<a href="@Url.Action("Details", "Accomodations",
+                                        new { accomodationPackageID = package.ID })"
+									   class="room image-popup-link"
+									   style="background-image: url('/images/site/@thumbnail');">
+									</a>
 
-									<!-- Przycisk 'Book now!' może też być klikalny -->
-									<p>
-										<a class="btn btn-primary btn-book"
-										   href="@Url.Action("Index",
-                                                             "Accommodations",
-                                                             new {
-                                                                 area = "Dashboard",
-                                                                 AccommodationTypeID = accommodationType.ID
-                                                             })">
-											Book now!
-										</a>
-									</p>
+									<div class="desc text-center">
+										<h3>
+											<a href="@Url.Action("Details", "Accomodations",
+                                                    new { accomodationPackageID = package.ID })">
+												@package.Name
+											</a>
+										</h3>
+										<p class="price">
+											@package.FeePerNight
+										</p>
+										<p>
+											<a class="btn btn-primary btn-book"
+											   href="@Url.Action("Details", "Accomodations",
+                                                    new { accomodationPackageID = package.ID })">
+												Szczegóły
+											</a>
+										</p>
+									</div>
 								</div>
-							</div>
-						}
+							}
+						</div>
+					</div>
 
+					<div class="col-md-12 text-center animate-box">
+						<a href="#">View all rooms <i class="icon-arrow-right3"></i></a>
 					</div>
 				</div>
 
-				<div class="col-md-12 text-center animate-box">
-					<a href="#">View all rooms <i class="icon-arrow-right3"></i></a>
-				</div>
-			</div>
+				// Na koniec pętli zwiększamy 'i'
+				i++;
+			}
 		</div>
 	</div>
 }

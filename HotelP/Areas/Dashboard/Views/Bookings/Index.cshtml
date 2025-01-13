@@ -53,6 +53,7 @@
                     <th>Opłacone</th>
                     <th>Metoda Płatności</th>
                     <th>Akcje</th>
+                    <th>Numer rezerwacji</th>
                 </tr>
             </thead>
             <tbody>
@@ -118,6 +119,8 @@
                         <td>
                             @booking.Status.GetDisplayName()
                         </td>
+
+
                         <td>
                             @if (booking.IsPaid)
                             {
@@ -153,6 +156,7 @@
                                 <i class="fa-solid fa-trash"></i> Usuń
                             </button>
                         </td>
+                        <td>@booking.ReservationNumber</td>
                     </tr>
                 }
             </tbody>
@@ -444,8 +448,8 @@
                                     // np. roomSelect.append( ... data-maxadults="${room.MaxAdults}" ...)
                                     roomSelect.append(
                                         `<option value="${room.ID}" data-price="${room.PricePerNight}">
-                                                     ${room.Name}
-                                                 </option>`
+                                                             ${room.Name}
+                                                         </option>`
                                     );
                                 });
                             } else {
