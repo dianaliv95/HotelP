@@ -10,7 +10,9 @@ namespace Hotel.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public AccountController(
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -30,12 +32,19 @@ namespace Hotel.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var user = new IdentityUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email
+                };
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
+
                     await _signInManager.SignInAsync(user, isPersistent: false);
+                   
+
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -61,12 +70,19 @@ namespace Hotel.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Próba logowania
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(
+                    model.Email,
+                    model.Password,
+                    model.RememberMe,
+                    lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    // Po zalogowaniu – dokąd? 
+                    // Możesz dać np. do obszaru Dashboard: 
+                    // return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
+                    return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
+
                 }
                 else if (result.IsLockedOut)
                 {
@@ -79,7 +95,6 @@ namespace Hotel.Controllers
             }
             return View(model);
         }
-
 
         // POST: Account/Logout
         [HttpPost]

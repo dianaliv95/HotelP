@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
+
     public class RoomsController : Controller
     {
         private readonly RoomService _roomService;
