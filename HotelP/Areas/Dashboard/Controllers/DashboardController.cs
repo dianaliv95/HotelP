@@ -16,10 +16,12 @@ namespace Hotel.Areas.Dashboard.Controllers
 	public class DashboardController : Controller
 	{
 		private readonly IWebHostEnvironment _hostingEnvironment;
+        
 		private readonly DashboardService _dashboardService;
 
         // Logger
         private readonly ILogger<DashboardController> _logger;
+
 
         public DashboardController(
             IWebHostEnvironment hostingEnvironment,
