@@ -1,0 +1,22 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.GroupBookingActionModel
+
+<div class="modal-header">
+    <h5 class="modal-title" id="deleteModalLabel">Usuń Rezerwację Grupową</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <form id="deleteGroupBookingForm" method="post"
+          action="@Url.Action("DeleteGroupBookingConfirmed", "GroupBookings", new { area = "Dashboard" })">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.ID" />
+        <p>Czy na pewno chcesz usunąć rezerwację dla <strong>@Model.FirstName @Model.LastName</strong>?</p>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="submit" form="deleteGroupBookingForm" class="btn btn-danger">
+        Usuń
+    </button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        Zamknij
+    </button>
+</div>

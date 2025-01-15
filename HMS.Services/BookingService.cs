@@ -235,7 +235,15 @@ namespace HMS.Services
                 return false;
             }
         }
-
+        public async Task<bool> IsRoomBookedAsync(int roomId, DateTime fromDate, DateTime toDate)
+        {
+            // Sprawdzamy, czy istnieje rezerwacja nakładająca się na [fromDate, toDate]
+            return await _context.Reservations.AnyAsync(r =>
+                r.RoomID == roomId &&
+                r.DateFrom < toDate &&
+                r.DateTo > fromDate
+            );
+        }
         // Pobieranie dostępnych pokoi
         public async Task<List<Room>> GetAvailableRoomsAsync(int accommodationId, DateTime fromDate, DateTime toDate)
         {

@@ -1,0 +1,53 @@
+﻿@model Hotel.ViewModels.GroupSearchResultViewModel
+@using HMS.Entities
+
+<h2>Wyniki wyszukiwania (BACKTRACKING)</h2>
+<p>Termin: @Model.FromDate.ToShortDateString() - @Model.ToDate.ToShortDateString()</p>
+<p>Gości dorosłych: @Model.AdultCount, dzieci: @Model.ChildrenCount</p>
+
+@if (Model.FoundRooms != null && Model.FoundRooms.Any())
+{
+    <h4>Najmniejszy zestaw pokoi spełniający wymogi:</h4>
+
+    <!-- Formularz, w którym user wybiera pokoje (checkbox) i klika "Rezerwuj zestaw" -->
+    <form id="selectRoomsForm" method="get"
+          action="@Url.Action("CreateGroupReservation", "PublicBooking")">
+
+        <!-- Ukryte parametry FromDate, ToDate, dorośli, dzieci -->
+        <input type="hidden" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="adults" value="@Model.AdultCount" />
+        <input type="hidden" name="children" value="@Model.ChildrenCount" />
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Wybierz</th>
+                    <th>Pokój</th>
+                    <th>MaxGuests</th>
+                    <th>Cena/noc</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.FoundRooms)
+                {
+                    <tr>
+                        <td>
+                            <!-- Każdy checkbox name="roomIds" => server dostanie List<int> roomIds -->
+                            <input type="checkbox" name="roomIds" value="@r.ID" />
+                        </td>
+                        <td>@r.Name</td>
+                        <td>@r.Accommodation.MaxGuests</td>
+                        <td>@r.PricePerNight</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-success">Rezerwuj zestaw</button>
+    </form>
+}
+else
+{
+    <p>Nie znaleziono pokoju lub zestawu pokoi, który pomieściłby tę liczbę gości.</p>
+}

@@ -21,6 +21,9 @@ namespace HMS.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<ReservationDates> ReservationDates { get; set; }
         public DbSet<Picture> Pictures { get; set; }
+        public DbSet<GroupReservation> GroupReservations { get; set; }
+        public DbSet<GroupReservationRoom> GroupReservationRooms { get; set; }
+
         public DbSet<AccommodationPicture> AccommodationPictures { get; set; }
         public DbSet<AccommodationPackagePicture> AccommodationPackagePictures { get; set; }
 
@@ -125,6 +128,60 @@ namespace HMS.Data
             modelBuilder.Entity<TableReservation>()
                 .HasIndex(tr => new { tr.TableNumber, tr.ReservationDate })
                 .IsUnique();
+
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.RStatus)
+                .HasConversion<string>()
+                .IsRequired(); // o ile chcesz, żeby Status zawsze był wypełniony
+
+            // 2) PaymentMethod zapisywany jako string
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.PaymentMethod)
+                .HasConversion<string>(); // PaymentMethod? -> string
+
+            // 3) Pola typu int – wartości domyślne, np. 0
+            // (jeśli chcesz, tak jak w Reservation AdultCount jest domyślnie 1)
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.AdultCount)
+                .HasDefaultValue(1);
+
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.ChildrenCount)
+                .HasDefaultValue(0);
+
+            // Pola do posiłków (wszystkie int) – też 0:
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.BreakfastAdults)
+                .HasDefaultValue(0);
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.BreakfastChildren)
+                .HasDefaultValue(0);
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.LunchAdults)
+                .HasDefaultValue(0);
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.LunchChildren)
+                .HasDefaultValue(0);
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.DinnerAdults)
+                .HasDefaultValue(0);
+            modelBuilder.Entity<GroupReservation>()
+                .Property(gr => gr.DinnerChildren)
+                .HasDefaultValue(0);
+
+
+            modelBuilder.Entity<GroupReservationRoom>()
+        .HasOne(grr => grr.GroupReservation)
+        .WithMany(gr => gr.GroupReservationRooms)
+        .HasForeignKey(grr => grr.GroupReservationID)
+        .OnDelete(DeleteBehavior.Cascade);
+
+            // Relacja 1 -> wiele: Room -> GroupReservationRoom
+            modelBuilder.Entity<GroupReservationRoom>()
+                .HasOne(grr => grr.Room)
+                .WithMany() // (chyba, że w Room mamy nawigację)
+                .HasForeignKey(grr => grr.RoomID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

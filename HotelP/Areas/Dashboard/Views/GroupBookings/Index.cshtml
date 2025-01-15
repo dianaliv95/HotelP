@@ -1,0 +1,417 @@
+﻿@model List<HMS.Entities.GroupReservation>
+@using HMS.Entities
+
+@{
+    ViewData["Title"] = "Lista Rezerwacji Grupowych";
+}
+
+<h2>Lista Rezerwacji Grupowych</h2>
+
+<!-- Sekcja filtr / wyszukiwanie -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <input id="searchTermInput" class="form-control" placeholder="Wyszukaj po imieniu/nazwisku..." />
+    </div>
+    <div class="col-md-4">
+        <button id="searchBtn" class="btn btn-primary">Filtruj</button>
+
+        <!-- Przycisk "Dodaj Rezerwację Grupową" -->
+        <button data-href="@Url.Action("CreateOrEdit", "GroupBookings", new { area = "Dashboard" })"
+                class="btn btn-success createGroupBtn"
+                data-bs-toggle="modal"
+                data-bs-target="#actionModal">
+            + Dodaj Rezerwację Grupową
+        </button>
+    </div>
+</div>
+
+@if (Model != null && Model.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Gość</th>
+                <th>Pokoje</th>
+                <th>Data Rozpoczęcia</th>
+                <th>Data Zakończenia</th>
+                <th>Czas Trwania (dni)</th>
+                <th>Posiłki</th>
+                <th>Kwota</th>
+                <th>Status</th>
+                <th>Opłacone</th>
+                <th>Metoda Płatności</th>
+                <th>Numer rezerwacji</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var gr in Model)
+            {
+                int duration = (gr.ToDate - gr.FromDate).Days;
+                if (duration < 0) duration = 0;
+
+                <tr>
+                    <td>@(gr.FirstName) @(gr.LastName)</td>
+
+                    <td>
+                        <ul>
+                            @foreach (var rr in gr.GroupReservationRooms)
+                            {
+                                <li>@($"{rr.Room?.Name} (Zakwaterowanie: {rr.Room?.Accommodation?.Name})")</li>
+                            }
+                        </ul>
+                    </td>
+
+                    <td>@gr.FromDate.ToString("dd.MM.yyyy")</td>
+                    <td>@gr.ToDate.ToString("dd.MM.yyyy")</td>
+                    <td>@duration</td>
+
+                    <td>
+                        @{
+                            bool hasBreakfast = (gr.BreakfastAdults + gr.BreakfastChildren) > 0;
+                            bool hasLunch = (gr.LunchAdults + gr.LunchChildren) > 0;
+                            bool hasDinner = (gr.DinnerAdults + gr.DinnerChildren) > 0;
+
+                            if (!hasBreakfast && !hasLunch && !hasDinner)
+                            {
+                                @:Brak
+                            }
+                            else
+                            {
+                                <ul>
+                                    @if (hasBreakfast)
+                                    {
+                                        <li>Śniadanie: @(gr.BreakfastAdults + gr.BreakfastChildren) os.</li>
+                                    }
+                                    @if (hasLunch)
+                                    {
+                                        <li>Obiad: @(gr.LunchAdults + gr.LunchChildren) os.</li>
+                                    }
+                                    @if (hasDinner)
+                                    {
+                                        <li>Kolacja: @(gr.DinnerAdults + gr.DinnerChildren) os.</li>
+                                    }
+                                </ul>
+                            }
+                        }
+                    </td>
+
+                    <td>@gr.TotalPrice.ToString("C")</td>
+                    <td>@gr.RStatus.GetDisplayName()</td>
+
+                    <td>
+                        @if (gr.IsPaid)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Nie</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (gr.PaymentMethod.HasValue)
+                        {
+                            @gr.PaymentMethod.Value.GetDisplayName()
+                        }
+                        else
+                        {
+                            <span>N/A</span>
+                        }
+                    </td>
+
+                    <td>@gr.ReservationNumber</td>
+
+                    <td>
+                        <button data-href="@Url.Action("CreateOrEdit", "GroupBookings", new { id = gr.ID, area = "Dashboard" })"
+                                class="btn btn-primary editGroupBtn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#actionModal">
+                            <i class="fa-solid fa-pen"></i> Edytuj
+                        </button>
+
+                        <button data-href="@Url.Action("DeleteGroupBooking", "GroupBookings", new { id = gr.ID, area = "Dashboard" })"
+                                class="btn btn-danger deleteGroupBtn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal">
+                            <i class="fa-solid fa-trash"></i> Usuń
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">Brak rezerwacji grupowych.</div>
+}
+
+<!-- Modal do tworzenia/edycji -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Tutaj wczytamy partial (formularz) CreateOrEdit przez AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal do usuwania -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Tutaj wczytamy partial (usuń) przez AJAX -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            /* ============ PODSTAWOWE ZMIENNE / USTAWIENIA ============ */
+            // Cennik posiłków – takie same stawki, jak w rezerwacji pojedynczej.
+            const PRICE_BREAKFAST = 20;
+            const PRICE_LUNCH = 25;
+            const PRICE_DINNER = 30;
+
+            /*
+             * Funkcja obliczająca łączną kwotę rezerwacji grupowej.
+             * Czyta:
+             *  - daty (FromDate, ToDate)
+             *  - zaznaczone pokoje (SelectedRoomIDs z data-price)
+             *  - liczbę dorosłych/dzieci
+             *  - posiłki (BreakfastAdults, LunchAdults, DinnerAdults, ...).
+             *
+             * Wynik zapisuje do #totalPrice (input albo div).
+             */
+            function calculateTotalGroupPrice() {
+                // 1) Pobierz daty i oblicz liczbę nocy
+                const fromDateVal = $("#fromDateInput").val();
+                const toDateVal = $("#toDateInput").val();
+
+                if (!fromDateVal || !toDateVal) {
+                    $("#totalPrice").val("0,00 zł");
+                    return;
+                }
+                const fromDate = new Date(fromDateVal);
+                const toDate = new Date(toDateVal);
+                let nights = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24));
+                if (isNaN(nights) || nights < 0) {
+                    nights = 0;
+                }
+
+                // 2) Przeglądamy zaznaczone pokoje -> sumujemy cenę
+                let total = 0;
+                $("input[name='SelectedRoomIDs']:checked").each(function () {
+                    const roomPrice = parseFloat($(this).data("price")) || 0;
+                    total += roomPrice * nights;
+                });
+
+                // 3) Posiłki
+                const bA = parseInt($("#breakfastAdultsInput").val() || 0, 10);
+                const bC = parseInt($("#breakfastChildrenInput").val() || 0, 10);
+                const lA = parseInt($("#lunchAdultsInput").val() || 0, 10);
+                const lC = parseInt($("#lunchChildrenInput").val() || 0, 10);
+                const dA = parseInt($("#dinnerAdultsInput").val() || 0, 10);
+                const dC = parseInt($("#dinnerChildrenInput").val() || 0, 10);
+
+                total += (bA + bC) * PRICE_BREAKFAST * nights;
+                total += (lA + lC) * PRICE_LUNCH * nights;
+                total += (dA + dC) * PRICE_DINNER * nights;
+
+                // 4) Wyświetlamy w #totalPrice
+                const formatted = total.toLocaleString("pl-PL", {
+                    style: "currency",
+                    currency: "PLN"
+                });
+                $("#totalPrice").val(formatted);
+            }
+
+
+            /*
+             * Funkcja sumująca limity (maxAdults, maxChildren)
+             * i jednocześnie obliczająca cenę w locie.
+             */
+            function updateGuestLimitsAndPrice() {
+                let totalMaxAdults = 0;
+                let totalMaxChildren = 0;
+
+                // Zliczamy z checkboxów "SelectedRoomIDs"
+                $("input[name='SelectedRoomIDs']:checked").each(function () {
+                    const maxA = parseInt($(this).data("maxadults")) || 0;
+                    const maxC = parseInt($(this).data("maxchildren")) || 0;
+                    totalMaxAdults += maxA;
+                    totalMaxChildren += maxC;
+                });
+
+                // Inputy dorosłych i dzieci
+                const $adultCount = $("#adultCountInput");
+                const $childrenCount = $("#childrenCountInput");
+
+                // Minimalna logika, np. jeżeli 0 pokoi – 1 dorosły?
+                if (totalMaxAdults < 1) totalMaxAdults = 1;
+                if (totalMaxChildren < 0) totalMaxChildren = 0;
+
+                // Ustawiamy atrybut max
+                $adultCount.attr("max", totalMaxAdults);
+                $childrenCount.attr("max", totalMaxChildren);
+
+                // Koryguj wartości
+                if (parseInt($adultCount.val()) > totalMaxAdults) {
+                    $adultCount.val(totalMaxAdults);
+                }
+                if (parseInt($childrenCount.val()) > totalMaxChildren) {
+                    $childrenCount.val(totalMaxChildren);
+                }
+
+                // Następnie obliczamy cenę
+                calculateTotalGroupPrice();
+            }
+
+
+            /*
+             * setupGroupBookingForm – wywoływane zawsze po wczytaniu partiala
+             * (Create/ Edit) rezerwacji grupowej.
+             * Podpina obsługę eventów:
+             *    - change w checkboksach pokoi
+             *    - change/keyup w polach posiłków
+             *    - change w datach
+             *    - ewentualnie change w polu "IsPaid"
+             */
+            function setupGroupBookingForm() {
+
+                // a) Checkboxy pokoi
+                $(document).on("change", "input[name='SelectedRoomIDs']", updateGuestLimitsAndPrice);
+
+                // b) Daty
+                $("#fromDateInput, #toDateInput").on("change", function () {
+                    updateGuestLimitsAndPrice();
+                });
+
+                // c) Pola liczby posiłków
+                $("#breakfastAdultsInput, #breakfastChildrenInput, " +
+                    "#lunchAdultsInput, #lunchChildrenInput, " +
+                    "#dinnerAdultsInput, #dinnerChildrenInput"
+                ).on("change keyup", function () {
+                    updateGuestLimitsAndPrice();
+                });
+
+                // d) Pola AdultCount / ChildrenCount – jeżeli chcesz je wliczać w cenę (opcjonalnie)
+                $("#adultCountInput, #childrenCountInput").on("change keyup", function () {
+                    updateGuestLimitsAndPrice();
+                });
+
+                // e) Checkbox "Opłacone" (IsPaid) -> ewentualnie pokaż/ukryj PaymentMethod
+                $("#isPaidCheck").on("change", function () {
+                    const isChecked = $(this).is(":checked");
+                    // np. jeżeli isChecked => pokaż select "PaymentMethodSelect", w przeciwnym razie hide
+                    if (isChecked) {
+                        $("#paymentMethodRow").show();
+                    } else {
+                        $("#paymentMethodRow").hide();
+                        // Ewentualnie wyczyść wartość
+                        $("#paymentMethodSelect").val("");
+                    }
+                });
+
+                // f) Uruchamiamy pierwszy raz
+                updateGuestLimitsAndPrice();
+            }
+
+
+            /* ============ Obsługa Filtra (searchTerm) ============ */
+            $("#searchBtn").click(function () {
+                const term = $("#searchTermInput").val();
+                const url = '@Url.Action("Index", "GroupBookings", new { area = "Dashboard" })'
+                    + '?searchTerm=' + encodeURIComponent(term);
+                window.location.href = url;
+            });
+
+            /* ============ Obsługa "Dodaj" – pobieramy partial do modala ============ */
+            $(document).on("click", ".createGroupBtn", function (e) {
+                e.preventDefault();
+                const url = $(this).data("href");
+
+                $.get(url, function (html) {
+                    $("#actionModal .modal-content").html(html);
+                    $("#actionModal").modal("show");
+
+                    // Po wczytaniu formularza -> setup
+                    setupGroupBookingForm();
+                });
+            });
+
+            /* ============ Obsługa "Edytuj" – analogicznie ============ */
+            $(document).on("click", ".editGroupBtn", function (e) {
+                e.preventDefault();
+                const url = $(this).data("href");
+
+                $.get(url, function (html) {
+                    $("#actionModal .modal-content").html(html);
+                    $("#actionModal").modal("show");
+
+                    setupGroupBookingForm();
+                });
+            });
+
+            /* ============ Submit formularza (#groupBookingForm) przez AJAX ============ */
+            $(document).on("submit", "#groupBookingForm", function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = form.attr("action");
+                const data = form.serialize();
+
+                $.post(url, data, function (result) {
+                    if (result.success) {
+                        alert(result.message);
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        // jeżeli serwer zwróci partial (HTML), to wklejamy go do modala
+                        $("#actionModal .modal-content").html(result);
+                        // ponownie setup
+                        setupGroupBookingForm();
+                    }
+                }).fail(function () {
+                    alert("Błąd podczas zapisywania rezerwacji grupowej.");
+                });
+            });
+
+            /* ============ Obsługa "Usuń" ============ */
+            $(document).on("click", ".deleteGroupBtn", function (e) {
+                e.preventDefault();
+                const url = $(this).data("href");
+
+                $.get(url, function (html) {
+                    $("#deleteModal .modal-content").html(html);
+                    $("#deleteModal").modal("show");
+                });
+            });
+
+            /* ============ Submit formularza usuwania (#deleteGroupBookingForm) ============ */
+            $(document).on("submit", "#deleteGroupBookingForm", function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = form.attr("action");
+                const data = form.serialize();
+
+                $.post(url, data, function (result) {
+                    if (result.success) {
+                        alert(result.message);
+                        $("#deleteModal").modal("hide");
+                        location.reload();
+                    } else {
+                        alert(result.message);
+                    }
+                }).fail(function () {
+                    alert("Błąd przy usuwaniu rezerwacji grupowej.");
+                });
+            });
+
+        });
+    </script>
+}
+
+

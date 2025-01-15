@@ -1,0 +1,54 @@
+﻿@model Hotel.ViewModels.CreateGroupReservationViewModel
+
+<h2>Potwierdź rezerwację grupową</h2>
+
+<form method="post" asp-action="CreateGroupReservation" asp-controller="PublicBooking">
+    @Html.AntiForgeryToken()
+
+    <!-- Ukryte pola dat i gości -->
+    <input type="hidden" asp-for="FromDate" />
+    <input type="hidden" asp-for="ToDate" />
+    <input type="hidden" asp-for="AdultCount" />
+    <input type="hidden" asp-for="ChildrenCount" />
+
+    <!-- Ukryte ID pokojów -->
+    @foreach (var rid in Model.SelectedRoomIDs)
+    {
+        <input type="hidden" name="SelectedRoomIDs" value="@rid" />
+    }
+
+    <div>
+        <p>Od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
+        <p>Liczba dorosłych: @Model.AdultCount, dzieci: @Model.ChildrenCount</p>
+        <p>Wybrane pokoje: @string.Join(", ", Model.SelectedRoomIDs)</p>
+    </div>
+
+    <hr />
+    <div>
+        <label>Imię</label>
+        <input asp-for="FirstName" />
+    </div>
+
+    <div>
+        <label>Nazwisko</label>
+        <input asp-for="LastName" />
+    </div>
+
+    <div>
+        <label>Numer kontaktowy</label>
+        <input asp-for="ContactPhone" />
+    </div>
+    <div>
+        <label>Adres e-mail</label>
+        <input asp-for="ContactEmail" type="email" />
+    </div>
+    <div>
+        <label>Wyżywienie</label>
+        <select asp-for="IsBreakfastIncluded">
+            <option value="false">Bez śniadania</option>
+            <option value="true">Ze śniadaniem</option>
+        </select>
+    </div>
+
+    <button type="submit">Zatwierdź rezerwację</button>
+</form>

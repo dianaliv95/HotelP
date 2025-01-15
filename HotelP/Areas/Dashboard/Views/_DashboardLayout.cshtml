@@ -30,7 +30,10 @@
                     <i class="fas fa-map-pin mr-1"></i> Accommodations
                 </a>
                 <a href="@Url.Action("Index", "Bookings", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
-                    <i class="fa-solid fa-book mr-1"></i> Rezerwacje
+                    <i class="fa-solid fa-book mr-1"></i> Rezerwacje pojedyncze
+                </a>
+                <a href="@Url.Action("Index", "GroupBookings", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
+                    <i class="fa-solid fa-book mr-1"></i> Rezerwacje grupowe
                 </a>
                 <!-- Pozostałe linki -->
                 <a href="@Url.Action("Index", "Roles", new { area = "Dashboard" })" class="list-group-item list-group-item-action bg-light">
