@@ -66,7 +66,7 @@
                            data-maxchildren="@((r.Accommodation?.MaxChildren) ?? 0)"
                     @(isChecked ? "checked" : "") />
                     <label for="room_@r.ID">
-                        @r.Name (RStatus: @r.Status) – @r.PricePerNight.ToString("C")
+                        @r.Name (Status: @r.Status) – @r.PricePerNight.ToString("C")
                     </label>
                 </div>
             }
