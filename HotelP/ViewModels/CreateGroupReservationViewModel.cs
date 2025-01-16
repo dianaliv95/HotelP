@@ -14,6 +14,7 @@ namespace Hotel.ViewModels
         public int AdultCount { get; set; }
         public int ChildrenCount { get; set; }
 
+
         // Lista identyfikatorów pokojów, które user chce zarezerwować
         public List<int> SelectedRoomIDs { get; set; } = new();
 

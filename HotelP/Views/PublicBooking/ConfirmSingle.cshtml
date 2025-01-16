@@ -1,0 +1,9 @@
+﻿@model HMS.Entities.Reservation
+
+<h2>Twoja rezerwacja została przyjęta!</h2>
+<p>Rezerwacja nr: @Model.ID</p>
+<p>Od: @Model.DateFrom.ToShortDateString() do: @Model.DateTo.ToShortDateString()</p>
+<p>@Model.AdultCount dorosłych, @Model.ChildrenCount dzieci</p>
+<p>Pokój: @Model.Room?.Name</p>
+
+<a class="btn btn-primary" href="/">Powrót do strony głównej</a>

@@ -4,6 +4,7 @@ using HMS.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HMS.Data.Migrations
 {
     [DbContext(typeof(HMSContext))]
-    partial class HMSContextModelSnapshot : ModelSnapshot
+    [Migration("20250116000610_Y")]
+    partial class Y
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -558,12 +561,6 @@ namespace HMS.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("AvailableTo")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("BlockedFrom")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("BlockedTo")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("BlockedUntil")

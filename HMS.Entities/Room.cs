@@ -25,9 +25,13 @@ namespace HMS.Entities
 
         [DataType(DataType.Date)]
         public DateTime? AvailableTo { get; set; }
+        public DateTime? BlockedFrom { get; set; }
+        public DateTime? BlockedTo { get; set; }
 
 
-        [Required]
+        public bool IsBlocked { get; set; } // np. do blokady administracyjnej
+		public DateTime? BlockedUntil { get; set; }
+		[Required]
         public int AccommodationID { get; set; }
 
         [Required]

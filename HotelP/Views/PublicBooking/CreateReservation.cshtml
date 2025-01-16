@@ -1,0 +1,29 @@
+﻿@model Hotel.Areas.Dashboard.ViewModels.BookingActionModel
+
+<h2>Rezerwacja Pojedyncza</h2>
+
+<form method="post" asp-action="CreateReservation" asp-controller="PublicBooking">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="FromDate" />
+    <input type="hidden" asp-for="DateTo" />
+    <input type="hidden" asp-for="AdultCount" />
+    <input type="hidden" asp-for="ChildrenCount" />
+    <input type="hidden" asp-for="RoomID" />
+
+    <div class="mb-3">
+        <label>Imię</label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label>Nazwisko</label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+    <!-- ... ewentualnie email, phone ... -->
+
+    <button type="submit" class="btn btn-primary">
+        Potwierdź rezerwację
+    </button>
+</form>

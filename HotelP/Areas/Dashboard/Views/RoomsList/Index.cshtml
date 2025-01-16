@@ -4,15 +4,31 @@
     <h2>Lista Pokoi</h2>
     <hr />
 
-    <!-- Formularz filtrowania (opcjonalnie) -->
-    <form method="get" action="@Url.Action("Index", "RoomsList", new { area = "Dashboard" })" class="row g-3 mb-3">
+    <!-- (A) Formularz filtrowania / nawigacji po datach -->
+    <form id="filterForm" method="get"
+          action="@Url.Action("Index", "RoomsList", new { area = "Dashboard" })"
+          class="row g-3 mb-3">
+
         <div class="col-auto">
-            <input type="date" class="form-control" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" />
+            <label for="dateFrom" class="visually-hidden">Data od</label>
+            <input type="date"
+                   class="form-control"
+                   id="dateFrom"
+                   name="dateFrom"
+                   value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" />
         </div>
+
         <div class="col-auto">
-            <input type="date" class="form-control" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" />
+            <label for="dateTo" class="visually-hidden">Data do</label>
+            <input type="date"
+                   class="form-control"
+                   id="dateTo"
+                   name="dateTo"
+                   value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" />
         </div>
+
         <div class="col-auto">
+            <!-- Filtr statusu -->
             <select class="form-select" name="status">
                 <option value="">-- Wybierz status --</option>
                 <option value="Available" @(Model.SelectedStatus == "Available" ? "selected" : "")>Dostępny</option>
@@ -20,12 +36,16 @@
                 <option value="Reserved" @(Model.SelectedStatus == "Reserved" ? "selected" : "")>Zarezerwowany</option>
             </select>
         </div>
+
         <div class="col-auto">
+            <!-- Przyciski strzałek i Filtruj -->
+            <button type="button" class="btn btn-outline-secondary" id="btnPrevDay">«</button>
+            <button type="button" class="btn btn-outline-secondary" id="btnNextDay">»</button>
             <button type="submit" class="btn btn-primary">Filtruj</button>
         </div>
     </form>
 
-    <!-- Tabela z pokojami -->
+    <!-- (B) Tabela z pokojami -->
     <table class="table table-striped">
         <thead>
             <tr>
@@ -38,38 +58,32 @@
             </tr>
         </thead>
         <tbody>
-        <tbody>
-                @if (Model.Rooms != null && Model.Rooms.Any())
+            @if (Model.Rooms != null && Model.Rooms.Any())
+            {
+                foreach (var room in Model.Rooms)
                 {
-                    foreach (var room in Model.Rooms)
-                    {
                     <tr>
                         <td>@room.Accommodation?.Name</td>
-
-
-                        
                         <td>
-                                @(room.Accommodation != null && room.Accommodation.AccommodationPackage != null
-                                    ? room.Accommodation.AccommodationPackage.Name
-                                    : "Brak pakietu")
+                            @(room.Accommodation?.AccommodationPackage != null
+                                ? room.Accommodation.AccommodationPackage.Name
+                                : "Brak pakietu")
                         </td>
-                       
                         <td>
-                            <!-- Wyświetlany status -->
-                                @room.Status
+                            @room.Status
+                            @if (room.BlockedFrom != null && room.BlockedTo != null)
+                            {
+                                <div class="text-danger small">
+                                    (Zablokowany:
+                                    @room.BlockedFrom.Value.ToString("yyyy-MM-dd")
+                                    –
+                                    @room.BlockedTo.Value.ToString("yyyy-MM-dd"))
+                                </div>
+                            }
                         </td>
-                        <td>@room.Accommodation?.MaxAdults  / @room.Accommodation?.MaxChildren  </td>
+                        <td>@room.Accommodation?.MaxAdults / @room.Accommodation?.MaxChildren</td>
                         <td>@room.PricePerNight.ToString("C")</td>
                         <td>
-                            <!-- Select i guzik do zmiany statusu -->
-                            <select class="form-select form-select-sm room-status-select" data-room-id="@room.ID">
-                                <option value="Available" @(room.Status == "Available" ? "selected" : "")>Dostępny</option>
-                                <option value="Blocked" @(room.Status == "Blocked" ? "selected" : "")>Zablokowany</option>
-                            </select>
-                            <button class="btn btn-sm btn-secondary update-status-btn" data-room-id="@room.ID">
-                                Zmień
-                            </button>
-
                             <!-- Przycisk "Rezerwuj" -->
                             <button class="btn btn-sm btn-success create-res-btn"
                                     data-room-id="@room.ID"
@@ -77,26 +91,81 @@
                                     data-bs-target="#reservationModal">
                                 Rezerwuj
                             </button>
+
+                            <!-- Przycisk "Zablokuj w dacie" -->
+                            <button class="btn btn-sm btn-warning block-modal-btn"
+                                    data-room-id="@room.ID"
+                                    data-room-name="@room.Name"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#blockRoomModal">
+                                Zablokuj w dacie
+                            </button>
+
+                            <!-- Przycisk "Odblokuj" -->
+                            <button class="btn btn-sm btn-light unblock-room-btn"
+                                    data-room-id="@room.ID">
+                                Odblokuj
+                            </button>
                         </td>
                     </tr>
-                    }
                 }
-                else
-                {
+            }
+            else
+            {
                 <tr>
                     <td colspan="6">Brak pokoi do wyświetlenia.</td>
                 </tr>
-                }
+            }
         </tbody>
-
     </table>
 </div>
 
-<!-- Modal do rezerwacji -->
+<!-- (C) Modal do rezerwacji (ładowany AJAX-owo) -->
 <div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content" id="reservationModalContent">
-            <!-- Partial view wczytany przez AJAX -->
+            <!-- Partial wczytywany przez AJAX (RoomsList/CreateReservation GET) -->
+        </div>
+    </div>
+</div>
+
+<!-- (D) Modal do blokowania pokoju w konkretnym zakresie -->
+<div class="modal fade" id="blockRoomModal" tabindex="-1" aria-labelledby="blockRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="blockRoomModalLabel" class="modal-title">Zablokuj pokój</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body">
+                <form id="blockRoomForm">
+                    <div class="mb-3">
+                        <label class="form-label">Pokój:</label>
+                        <input type="text" id="blockRoomName" class="form-control" disabled />
+                        <input type="hidden" id="blockRoomId" name="roomId" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="blockFrom" class="form-label">Data od:</label>
+                        <input type="date" id="blockFrom" name="blockFrom" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="blockTo" class="form-label">Data do:</label>
+                        <input type="date" id="blockTo" name="blockTo" class="form-control" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Anuluj
+                </button>
+                <button type="button"
+                        class="btn btn-warning"
+                        id="blockRoomSaveBtn">
+                    Zablokuj
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -105,30 +174,61 @@
     <script>
         $(document).ready(function () {
 
-            // (A) Zmiana statusu
-            $(".update-status-btn").click(function () {
-                var roomId = $(this).data("room-id");
-                var newStatus = $(`.room-status-select[data-room-id='${roomId}']`).val();
+            // Funkcja licząca różnicę w dniach:
+            function getDateDiffInDays(d1, d2) {
+                const timeDiff = d2.getTime() - d1.getTime();
+                return Math.round(timeDiff / (1000 * 60 * 60 * 24));
+            }
 
-                $.ajax({
-                    url: '@Url.Action("ChangeStatus", "RoomsList", new { area = "Dashboard" })',
-                    type: 'POST',
-                    data: { roomId: roomId, newStatus: newStatus },
-                    success: function (result) {
-                        if (result.success) {
-                            alert("Status zaktualizowany.");
-                            location.reload();
-                        } else {
-                            alert(result.message || "Błąd przy zmianie statusu.");
-                        }
-                    },
-                    error: function () {
-                        alert("Wystąpił błąd serwera przy zmianie statusu.");
-                    }
-                });
+            // (1) STRZAŁKA W LEWO
+            $("#btnPrevDay").on("click", function () {
+                let fromVal = $("#dateFrom").val() || null;
+                let toVal = $("#dateTo").val() || null;
+
+                // Jeśli brak, ustawiamy "dzisiaj" i "dzisiaj+1"
+                let fromDate = fromVal ? new Date(fromVal) : new Date();
+                let toDate = toVal ? new Date(toVal) : new Date(fromDate.getTime() + 86400000);
+
+                // Różnica dni
+                let diffDays = getDateDiffInDays(fromDate, toDate);
+                if (diffDays < 1) diffDays = 1; // minimalnie 1 dzień
+
+                // Cofamy obie daty o 1 dzień
+                fromDate.setDate(fromDate.getDate() - 1);
+                toDate = new Date(fromDate.getTime());
+                toDate.setDate(toDate.getDate() + diffDays);
+
+                // Ustawiamy
+                $("#dateFrom").val(fromDate.toISOString().substring(0, 10));
+                $("#dateTo").val(toDate.toISOString().substring(0, 10));
+
+                $("#filterForm").submit();
             });
 
-            // (B) Otwarcie modala "Rezerwuj"
+            // (2) STRZAŁKA W PRAWO
+            $("#btnNextDay").on("click", function () {
+                let fromVal = $("#dateFrom").val() || null;
+                let toVal = $("#dateTo").val() || null;
+
+                let fromDate = fromVal ? new Date(fromVal) : new Date();
+                let toDate = toVal ? new Date(toVal) : new Date(fromDate.getTime() + 86400000);
+
+                let diffDays = getDateDiffInDays(fromDate, toDate);
+                if (diffDays < 1) diffDays = 1;
+
+                // Przesuwamy do przodu
+                fromDate.setDate(fromDate.getDate() + 1);
+                toDate = new Date(fromDate.getTime());
+                toDate.setDate(toDate.getDate() + diffDays);
+
+                $("#dateFrom").val(fromDate.toISOString().substring(0, 10));
+                $("#dateTo").val(toDate.toISOString().substring(0, 10));
+
+                $("#filterForm").submit();
+            });
+
+
+            // (3) Rezerwacja (modal)
             $(".create-res-btn").click(function () {
                 var roomId = $(this).data("room-id");
 
@@ -146,7 +246,7 @@
                 });
             });
 
-            // (C) Obsługa submit formularza rezerwacji w modal
+            // obsługa POST rezerwacji
             $(document).on("submit", "#reservationForm", function (e) {
                 e.preventDefault();
                 var formData = $(this).serialize();
@@ -165,10 +265,83 @@
                         }
                     },
                     error: function () {
-                        alert("Wystąpił błąd serwera przy tworzeniu rezerwacji.");
+                        alert("Błąd serwera przy tworzeniu rezerwacji.");
                     }
                 });
             });
+
+
+            // (4) Blokowanie w dacie
+            $(".block-modal-btn").click(function () {
+                var roomId = $(this).data("room-id");
+                var roomName = $(this).data("room-name");
+
+                // Wypełniamy pola w modalu:
+                $("#blockRoomId").val(roomId);
+                $("#blockRoomName").val(roomName);
+
+                // Domyślne daty: dzisiaj + jutro
+                let today = new Date();
+                let tomorrow = new Date(today.getTime() + 86400000);
+                $("#blockFrom").val(today.toISOString().substring(0, 10));
+                $("#blockTo").val(tomorrow.toISOString().substring(0, 10));
+            });
+
+            $("#blockRoomSaveBtn").click(function () {
+                var roomId = $("#blockRoomId").val();
+                var blockFrom = $("#blockFrom").val();
+                var blockTo = $("#blockTo").val();
+
+                if (!blockFrom || !blockTo) {
+                    alert("Uzupełnij obie daty.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("BlockRoom", "RoomsList", new { area = "Dashboard" })',
+                    type: 'POST',
+                    data: {
+                        roomId: roomId,
+                        blockFrom: blockFrom,
+                        blockTo: blockTo
+                    },
+                    success: function (resp) {
+                        if (resp.success) {
+                            alert(resp.message);
+                            $("#blockRoomModal").modal("hide");
+                            location.reload();
+                        } else {
+                            alert(resp.message || "Nie udało się zablokować pokoju.");
+                        }
+                    },
+                    error: function () {
+                        alert("Błąd serwera przy blokowaniu pokoju.");
+                    }
+                });
+            });
+
+            // (5) Odblokuj
+            $(".unblock-room-btn").click(function () {
+                var roomId = $(this).data("room-id");
+
+                $.ajax({
+                    url: '@Url.Action("UnblockRoom", "RoomsList", new { area = "Dashboard" })',
+                    type: 'POST',
+                    data: { roomId: roomId },
+                    success: function (resp) {
+                        if (resp.success) {
+                            alert(resp.message);
+                            location.reload();
+                        } else {
+                            alert(resp.message || "Nie udało się odblokować pokoju.");
+                        }
+                    },
+                    error: function () {
+                        alert("Błąd serwera przy odblokowywaniu pokoju.");
+                    }
+                });
+            });
+
         });
     </script>
 }

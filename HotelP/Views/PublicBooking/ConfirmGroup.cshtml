@@ -1,0 +1,16 @@
+﻿@model HMS.Entities.GroupReservation
+
+<h2>Rezerwacja grupowa – sukces!</h2>
+<p>Numer: @Model.ID</p>
+<p>Od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
+<p>Dorośli: @Model.AdultCount, dzieci: @Model.ChildrenCount</p>
+
+<h4>Wybrane pokoje:</h4>
+<ul>
+    @foreach (var rr in Model.GroupReservationRooms)
+    {
+        <li>@rr.Room?.Name</li>
+    }
+</ul>
+
+<a class="btn btn-primary" href="/">Powrót do strony głównej</a>

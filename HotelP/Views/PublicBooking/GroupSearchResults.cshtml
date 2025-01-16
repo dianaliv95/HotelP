@@ -1,24 +1,13 @@
 ﻿@model Hotel.ViewModels.GroupSearchResultViewModel
 @using HMS.Entities
 
-<h2>Wyniki wyszukiwania </h2>
-<p>Termin: @Model.FromDate.ToShortDateString() - @Model.ToDate.ToShortDateString()</p>
-<p>Gości dorosłych: @Model.AdultCount, dzieci: @Model.ChildrenCount</p>
+<h2>Wyniki wyszukiwania</h2>
+<p>Od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
+<p>@Model.AdultCount dorosłych, @Model.ChildrenCount dzieci</p>
 
 @if (Model.FoundRooms != null && Model.FoundRooms.Any())
 {
-    <h4>Najmniejszy zestaw pokoi spełniający wymogi:</h4>
-
-    <!-- Formularz, w którym user wybiera pokoje (checkbox) i klika "Rezerwuj zestaw" -->
-    <form id="selectRoomsForm" method="get"
-          action="@Url.Action("CreateGroupReservation", "PublicBooking")">
-
-        <!-- Ukryte parametry FromDate, ToDate, dorośli, dzieci -->
-        <input type="hidden" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
-        <input type="hidden" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
-        <input type="hidden" name="adults" value="@Model.AdultCount" />
-        <input type="hidden" name="children" value="@Model.ChildrenCount" />
-
+    <form method="get">
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -33,21 +22,36 @@
                 {
                     <tr>
                         <td>
-                            <!-- Każdy checkbox name="roomIds" => server dostanie List<int> roomIds -->
                             <input type="checkbox" name="roomIds" value="@r.ID" />
                         </td>
                         <td>@r.Name</td>
-                        <td>@r.Accommodation.MaxGuests</td>
+                        <td>@(r.Accommodation?.MaxGuests ?? 0)</td>
                         <td>@r.PricePerNight</td>
                     </tr>
                 }
             </tbody>
         </table>
 
-        <button type="submit" class="btn btn-success">Rezerwuj zestaw</button>
+        <!-- Ukryte parametry -->
+        <input type="hidden" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="adults" value="@Model.AdultCount" />
+        <input type="hidden" name="children" value="@Model.ChildrenCount" />
+
+        <button type="submit"
+                formaction="@Url.Action("CreateReservation", "PublicBooking")"
+                class="btn btn-primary">
+            Zarezerwuj (pojedyncza)
+        </button>
+
+        <button type="submit"
+                formaction="@Url.Action("CreateGroupReservation", "PublicBooking")"
+                class="btn btn-success">
+            Zarezerwuj (grupowa)
+        </button>
     </form>
 }
 else
 {
-    <p>Nie znaleziono pokoju lub zestawu pokoi, który pomieściłby tę liczbę gości.</p>
+    <p>Brak dostępnych pokoi.</p>
 }

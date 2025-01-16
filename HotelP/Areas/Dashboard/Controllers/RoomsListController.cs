@@ -35,11 +35,27 @@ namespace Hotel.Areas.Dashboard.Controllers
         // =========== (A) Lista pokoi z filtrowaniem =============
         // ========================================================
         [HttpGet]
+
+        
         public async Task<IActionResult> Index(DateTime? dateFrom, DateTime? dateTo, string status)
         {
             var rooms = await _roomService.GetAllRoomsAsync();
 
-            // Filtry statusu
+            // DYNAMICZNE SPRAWDZANIE dostępności:
+            if (dateFrom.HasValue && dateTo.HasValue)
+            {
+                foreach (var r in rooms)
+                {
+                    bool isFree = await _roomService.IsRoomAvailableAsync(r.ID, dateFrom.Value, dateTo.Value);
+                    if (!isFree)
+                        r.Status = "Reserved";
+                    else if (r.BlockedFrom != null && r.BlockedTo != null)
+                        r.Status = "Blocked";
+                    else
+                        r.Status = "Available";
+                }
+            }
+
             if (!string.IsNullOrEmpty(status))
             {
                 if (status == "Available")
@@ -47,17 +63,7 @@ namespace Hotel.Areas.Dashboard.Controllers
                 else if (status == "Blocked")
                     rooms = rooms.Where(r => r.Status == "Blocked").ToList();
                 else if (status == "Reserved")
-                    rooms = rooms.Where(r => r.IsReserved).ToList();
-                // ewent. inne stany
-            }
-
-            // (opcjonalny) Filtr po datach – np. jeżeli w jakimś custom logic
-            if (dateFrom.HasValue && dateTo.HasValue)
-            {
-                rooms = rooms.Where(r =>
-                    (r.AvailableFrom == null || r.AvailableFrom <= dateFrom) &&
-                    (r.AvailableTo == null || r.AvailableTo >= dateTo)
-                ).ToList();
+                    rooms = rooms.Where(r => r.Status == "Reserved").ToList();
             }
 
             var model = new RoomsListViewModel
@@ -67,7 +73,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 DateTo = dateTo,
                 SelectedStatus = status
             };
-
             return View("Index", model);
         }
 
@@ -80,6 +85,49 @@ namespace Hotel.Areas.Dashboard.Controllers
                 return Json(new { success = true });
             else
                 return Json(new { success = false, message = "Nie udało się zaktualizować statusu pokoju." });
+        }
+        [HttpPost]
+        public async Task<IActionResult> BlockRoom(int roomId, DateTime blockFrom, DateTime blockTo)
+        {
+            if (blockFrom >= blockTo)
+            {
+                return Json(new { success = false, message = "Data początkowa musi być wcześniejsza niż końcowa." });
+            }
+
+            var room = await _roomService.GetRoomByIdAsync(roomId);
+            if (room == null)
+                return Json(new { success = false, message = "Pokój nie istnieje." });
+
+            room.BlockedFrom = blockFrom;
+            room.BlockedTo = blockTo;
+            room.IsBlocked = true;    // lub zrezygnuj z IsBlocked, jeżeli wystarczą daty
+            room.Status = "Blocked";
+
+            bool updated = await _roomService.UpdateRoomAsync(room);
+            if (!updated)
+                return Json(new { success = false, message = "Nie udało się zablokować pokoju." });
+
+            return Json(new { success = true, message = $"Pokój zablokowany od {blockFrom:yyyy-MM-dd} do {blockTo:yyyy-MM-dd}." });
+        }
+
+        // (A4) Odblokowanie pokoju
+        [HttpPost]
+        public async Task<IActionResult> UnblockRoom(int roomId)
+        {
+            var room = await _roomService.GetRoomByIdAsync(roomId);
+            if (room == null)
+                return Json(new { success = false, message = "Pokój nie istnieje." });
+
+            room.BlockedFrom = null;
+            room.BlockedTo = null;
+            room.IsBlocked = false;
+            room.Status = "Available"; // lub "Available" z bazy
+
+            bool updated = await _roomService.UpdateRoomAsync(room);
+            if (!updated)
+                return Json(new { success = false, message = "Nie udało się odblokować pokoju." });
+
+            return Json(new { success = true, message = "Pokój został odblokowany." });
         }
 
 
@@ -115,49 +163,39 @@ namespace Hotel.Areas.Dashboard.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateReservation(BookingActionModel model)
         {
-            // Walidacja
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors)
                                               .Select(e => e.ErrorMessage)
                                               .ToList();
-                foreach (var error in errors)
-                {
-                    _logger.LogWarning("ModelState error: {Error}", error);
-                }
+                _logger.LogWarning("Wystąpiły błędy walidacji: {0}", string.Join("; ", errors));
                 return Json(new { success = false, message = "Nieprawidłowe dane rezerwacji.", errors });
             }
 
-            // Pobranie pokoju
             var room = await _roomService.GetRoomByIdAsync(model.RoomID.Value);
             if (room == null)
                 return Json(new { success = false, message = "Pokój nie istnieje." });
 
+            // Sprawdzenie limitów
             var accommodation = room.Accommodation;
             if (accommodation == null)
-                return Json(new { success = false, message = "Brak informacji o zakwaterowaniu." });
+                return Json(new { success = false, message = "Brak zakwaterowania w pokoju." });
 
-            // Sprawdzenie max
             if (model.AdultCount > accommodation.MaxAdults)
             {
                 ModelState.AddModelError("AdultCount",
-                    $"Przekroczono dopuszczalną liczbę dorosłych ({accommodation.MaxAdults}).");
+                    $"Przekroczono maksymalną liczbę dorosłych: {accommodation.MaxAdults}.");
             }
             if (model.ChildrenCount > accommodation.MaxChildren)
             {
                 ModelState.AddModelError("ChildrenCount",
-                    $"Przekroczono dopuszczalną liczbę dzieci ({accommodation.MaxChildren}).");
+                    $"Przekroczono maksymalną liczbę dzieci: {accommodation.MaxChildren}.");
             }
-
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors)
                                               .Select(e => e.ErrorMessage)
                                               .ToList();
-                foreach (var error in errors)
-                {
-                    _logger.LogWarning("ModelState error: {Error}", error);
-                }
                 return Json(new { success = false, message = "Walidacja nie powiodła się", errors });
             }
 
@@ -173,14 +211,12 @@ namespace Hotel.Areas.Dashboard.Controllers
                 DateTo = model.DateTo,
                 AdultCount = model.AdultCount,
                 ChildrenCount = model.ChildrenCount,
-
                 BreakfastAdults = model.BreakfastAdults,
                 BreakfastChildren = model.BreakfastChildren,
                 LunchAdults = model.LunchAdults,
                 LunchChildren = model.LunchChildren,
                 DinnerAdults = model.DinnerAdults,
                 DinnerChildren = model.DinnerChildren,
-
                 Status = model.Status,
                 IsPaid = model.IsPaid,
                 PaymentMethod = model.PaymentMethod,
@@ -188,19 +224,20 @@ namespace Hotel.Areas.Dashboard.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            // Zapis w bazie przez BookingService
+            // Zapis w bazie
             bool result = await _bookingService.CreateReservationAsync(newReservation);
             if (result)
             {
-                // aktualizacja pokoju
+                // Ustawiamy status pokoju = "Reserved"
                 await _roomService.UpdateRoomStatusAsync(newReservation.RoomID, "Reserved");
                 return Json(new { success = true, message = $"Rezerwacja utworzona! Nr: {model.ReservationNumber}" });
             }
             else
             {
-                return Json(new { success = false, message = "Nie udało się utworzyć rezerwacji." });
+                return Json(new { success = false, message = "Nie udało się utworzyć rezerwacji (kolizja?)." });
             }
         }
+
 
 
         // ========================================================
@@ -449,6 +486,11 @@ namespace Hotel.Areas.Dashboard.Controllers
         // ========================================================
         // (D) Inne akcje lub metody pomocnicze...
         // ========================================================
+       
+
+
+
+
 
         [HttpGet]
         public IActionResult CreateAccommodation()

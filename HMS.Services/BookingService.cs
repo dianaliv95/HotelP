@@ -29,18 +29,33 @@ namespace HMS.Services
                 .ToListAsync();
         }
 
-        // Sprawdzenie dostępności pokoju w zadanym zakresie
-        public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime fromDate, DateTime toDate)
-        {
-            return !await _context.Reservations
-                .AnyAsync(res =>
-                    res.RoomID == roomId &&
-                    res.DateFrom < toDate &&
-                    res.DateTo > fromDate);
-        }
+		// Sprawdzenie dostępności pokoju w zadanym zakresie
+		public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime fromDate, DateTime toDate)
+		{
+			// 1) Ignoruj, jeśli pokój jest zablokowany
+			var room = await _context.Rooms.FindAsync(roomId);
+			if (room == null) return false;
+			if (room.IsBlocked && room.BlockedUntil.HasValue && room.BlockedUntil >= fromDate)
+			{
+				// pokój jest zablokowany administracyjnie
+				return false;
+			}
 
-        // Pobranie rezerwacji po ID
-        public async Task<Reservation> GetReservationByIdAsync(int id)
+			// 2) Sprawdź, czy istnieje inna rezerwacja w przedziale (kolizja)
+			// Kolizja => [existing.DateFrom, existing.DateTo) nakłada się na [fromDate, toDate)
+			// Condition => (existing.DateFrom < toDate) && (existing.DateTo > fromDate)
+			bool anyCollisions = await _context.Reservations.AnyAsync(r =>
+				r.RoomID == roomId &&
+				r.DateFrom < toDate &&
+				r.DateTo > fromDate
+			);
+
+			return !anyCollisions;
+		}
+
+
+		// Pobranie rezerwacji po ID
+		public async Task<Reservation> GetReservationByIdAsync(int id)
         {
             return await _context.Reservations
                 .Include(r => r.Room)
@@ -94,35 +109,43 @@ namespace HMS.Services
             return total;
         }
 
-        // Tworzenie nowej rezerwacji
-        public async Task<bool> CreateReservationAsync(Reservation reservation)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                _context.Reservations.Add(reservation);
+		// Tworzenie nowej rezerwacji
+		public async Task<bool> CreateReservationAsync(Reservation reservation)
+		{
+			using var transaction = await _context.Database.BeginTransactionAsync();
+			try
+			{
+				// Sprawdź dostępność:
+				bool canBook = await IsRoomAvailableAsync(
+					reservation.RoomID,
+					reservation.DateFrom,
+					reservation.DateTo
+				);
+				if (!canBook)
+				{
+					_logger.LogInformation("Pokój {0} nie jest dostępny w {1} - {2}",
+						reservation.RoomID, reservation.DateFrom, reservation.DateTo);
+					await transaction.RollbackAsync();
+					return false;
+				}
 
-                var room = await _context.Rooms.FindAsync(reservation.RoomID);
-                if (room != null)
-                {
-                    room.Status = "Reserved";
-                    _context.Rooms.Update(room);
-                }
+				// Dodaj rezerwację
+				_context.Reservations.Add(reservation);
+				await _context.SaveChangesAsync();
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Błąd podczas tworzenia rezerwacji.");
-                await transaction.RollbackAsync();
-                return false;
-            }
-        }
+				await transaction.CommitAsync();
+				return true;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Błąd podczas tworzenia rezerwacji.");
+				await transaction.RollbackAsync();
+				return false;
+			}
+		}
 
-        // Aktualizacja rezerwacji
-        public async Task<bool> UpdateReservationAsync(Reservation reservation)
+		// Aktualizacja rezerwacji
+		public async Task<bool> UpdateReservationAsync(Reservation reservation)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
