@@ -1,0 +1,103 @@
+﻿@model IEnumerable<HMS.Entities.Category>
+
+<aside id="colorlib-hero">
+    <div class="flexslider">
+        <ul class="slides">
+            <li style="background-image: url('/images/img_bg_5.jpg');">
+                <div class="overlay"></div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12 col-md-offset-3 slider-text">
+                            <div class="slider-text-inner slider-text-inner2 text-center">
+                                <h2>Food be like</h2>
+                                <h1>Dining &amp; Bar</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+<div id="colorlib-rooms" class="colorlib-light-grey">
+    <div class="container">
+        <!-- Iteracja po wszystkich kategoriach -->
+        @foreach (var category in Model)
+        {
+            <!-- Sekcja nagłówka z gwiazdkami -->
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 text-center colorlib-heading animate-box">
+                    <span>
+                        <i class="icon-star-full"></i>
+                        <i class="icon-star-full"></i>
+                        <i class="icon-star-full"></i>
+                    </span>
+                    <!-- Zamiast "Main Menu" wstawiamy nazwę kategorii -->
+                    <h2>@category.Name</h2>
+                </div>
+            </div>
+
+            <!-- Tutaj wyświetlamy dania należące do danej kategorii -->
+            <div class="row row-pb-lg">
+                @if (category.Dishes != null && category.Dishes.Any())
+                {
+                    @foreach (var dish in category.Dishes)
+                    {
+                        var dishImgUrl = GetDishPictureUrl(dish);
+
+                        <div class="col-md-4 room-wrap animate-box">
+                            <!-- Miniaturka dania (kliknięcie może otwierać popup, jeśli używasz Magnific Popup) -->
+                            <a href="@dishImgUrl" class="room image-popup-link"
+                               style="background-image: url('@dishImgUrl');">
+                            </a>
+
+                            <div class="desc text-center">
+                                <!-- Nazwa potrawy -->
+                                <h3>@dish.Name</h3>
+
+                                <!-- Cena -->
+                                <p class="price">
+                                    <span class="currency currency-menu">$</span>
+                                    <span class="price-room price-menu">
+                                        @dish.Price.ToString("F2")
+                                        <!-- lub @dish.Price.ToString("C") jeśli chcesz automatycznie walutę -->
+                                    </span>
+                                </p>
+
+                                <!-- Opcjonalny przycisk "Take an Order" -->
+                                <p>
+                                    <a class="btn btn-primary btn-book">Take an Order</a>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Gdy brak dań w danej kategorii -->
+                    <div class="col-md-12">
+                        <p class="text-muted">
+                            Brak dań w kategorii <strong>@category.Name</strong>.
+                        </p>
+                    </div>
+                }
+            </div> <!-- .row -->
+        }
+    </div> <!-- .container -->
+</div> <!-- #colorlib-rooms -->
+@functions {
+    /// Pomocnicza metoda do pobierania pierwszego zdjęcia z kolekcji DishPictures.
+    private string GetDishPictureUrl(HMS.Entities.Dish dish)
+    {
+        var firstPic = dish?.DishPictures?.FirstOrDefault();
+        if (firstPic?.Picture != null)
+        {
+            // Dopasuj ścieżkę do Twojego projektu
+            return "/images/site/" + firstPic.Picture.URL;
+        }
+
+        // W razie braku zdjęcia – placeholder
+        return "/images/site/no-image.jpg";
+    }
+}

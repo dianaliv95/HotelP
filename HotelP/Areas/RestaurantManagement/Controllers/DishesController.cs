@@ -2,8 +2,11 @@
 using HMS.Services;
 using Hotel.Areas.RestaurantManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace HMS.Areas.RestaurantManagement.Controllers
+namespace Hotel.Areas.RestaurantManagement.Controllers
 {
     [Area("RestaurantManagement")]
     public class DishesController : Controller
@@ -11,104 +14,106 @@ namespace HMS.Areas.RestaurantManagement.Controllers
         private readonly DishesService _dishesService;
         private readonly CategoryService _categoryService;
 
-        public DishesController(DishesService dishesService, CategoryService categoryService)
+        public DishesController(DishesService dishesService,
+                                CategoryService categoryService)
         {
             _dishesService = dishesService;
             _categoryService = categoryService;
         }
 
+        // GET: Lista dań z wyszukiwaniem
+        [HttpGet]
         public IActionResult Index(string searchTerm, int? categoryId)
         {
-            // Pobranie listy dań na podstawie filtrów
-            var dishes = categoryId.HasValue
-                ? _dishesService.GetDishesByCategory(categoryId.Value)
-                : _dishesService.SearchDishes(searchTerm);
+            var categories = _categoryService.GetAllCategories();
+            var dishes = string.IsNullOrEmpty(searchTerm) && !categoryId.HasValue
+                ? _dishesService.GetAllDishes()
+                : _dishesService.SearchDishes(searchTerm, categoryId);
 
-            // Przygotowanie ViewModel-u
             var model = new DishesListingModel
             {
                 Dishes = dishes,
                 SearchTerm = searchTerm,
                 SelectedCategoryId = categoryId,
-                Categories = _categoryService.GetAllCategories() // Pobranie unikalnych kategorii
+                Categories = categories
             };
 
             return View(model);
         }
 
-        // Akcja GET dla formularza dodawania/edycji
+        // GET: Tworzenie/edycja
         [HttpGet]
-        public IActionResult Action(int? ID)
+        public IActionResult Action(int? id)
         {
-            var categories = _categoryService.GetAllCategories(); // Pobierz kategorie z bazy danych
+            var categories = _categoryService.GetAllCategories();
 
             var model = new DishActionModel
             {
-                ID = ID ?? 0,
+                ID = 0,
                 Name = string.Empty,
                 Description = string.Empty,
                 Price = 0,
                 CategoryID = 0,
-                Categories = categories
+                Categories = categories,
+                DishPictures = new List<DishPicture>()
             };
 
-            if (ID.HasValue)
+            if (id.HasValue && id.Value > 0)
             {
-                var dish = _dishesService.GetDishById(ID.Value);
-                if (dish != null)
-                {
-                    model.ID = dish.ID;
-                    model.Name = dish.Name;
-                    model.Description = dish.Description;
-                    model.Price = dish.Price;
-                    model.CategoryID = dish.CategoryID;
-                }
+                var dish = _dishesService.GetDishById(id.Value);
+                if (dish == null) return NotFound("Dish not found.");
+
+                model.ID = dish.ID;
+                model.Name = dish.Name;
+                model.Description = dish.Description;
+                model.Price = dish.Price;
+                model.CategoryID = dish.CategoryID;
+                model.DishPictures = dish.DishPictures ?? new List<DishPicture>();
             }
 
             return PartialView("_Action", model);
         }
 
-
-        // Akcja POST dla zapisywania danych
+        // POST: Zapis tworzenia/edycji
         [HttpPost]
-        public JsonResult Action(DishActionModel model)
+        [ValidateAntiForgeryToken]
+        public IActionResult Action(DishActionModel model)
         {
-            if (model == null)
+            if (!ModelState.IsValid)
             {
-                return Json(new { success = false, message = "Model jest nullem." });
+                return Json(new { success = false, message = "Nieprawidłowe dane formularza." });
             }
 
-            if (string.IsNullOrEmpty(model.Name))
+            // Parsujemy PictureIDs
+            var pictureIDs = new List<int>();
+            if (!string.IsNullOrEmpty(model.PictureIDs))
             {
-                return Json(new { success = false, message = "Pole 'Name' jest wymagane." });
+                pictureIDs = model.PictureIDs
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
             }
 
-            if (model.CategoryID <= 0)
-            {
-                return Json(new { success = false, message = "Wybór kategorii jest wymagany." });
-            }
-
-            var result = false;
-
+            bool result;
             try
             {
                 if (model.ID > 0)
                 {
-                    var dish = _dishesService.GetDishById(model.ID);
-                    if (dish == null)
-                    {
-                        return Json(new { success = false, message = "Nie znaleziono rekordu do edycji." });
-                    }
+                    // Edycja
+                    var existingDish = _dishesService.GetDishById(model.ID);
+                    if (existingDish == null)
+                        return Json(new { success = false, message = "Dish not found for edit." });
 
-                    dish.Name = model.Name;
-                    dish.Description = model.Description ?? "";
-                    dish.Price = model.Price;
-                    dish.CategoryID = model.CategoryID;
+                    existingDish.Name = model.Name;
+                    existingDish.Description = model.Description ?? "";
+                    existingDish.Price = model.Price;
+                    existingDish.CategoryID = model.CategoryID;
 
-                    result = _dishesService.UpdateDish(dish);
+                    result = _dishesService.UpdateDish(existingDish, pictureIDs);
                 }
                 else
                 {
+                    // Nowy obiekt
                     var newDish = new Dish
                     {
                         Name = model.Name,
@@ -117,72 +122,55 @@ namespace HMS.Areas.RestaurantManagement.Controllers
                         CategoryID = model.CategoryID
                     };
 
-                    result = _dishesService.SaveDish(newDish);
+                    result = _dishesService.SaveDish(newDish, pictureIDs);
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Wystąpił błąd podczas zapisywania danych." });
+                return Json(new { success = false, message = $"Błąd przy zapisie: {ex.Message}" });
             }
 
             if (result)
-            {
                 return Json(new { success = true });
-            }
             else
-            {
-                return Json(new { success = false, message = "Błąd podczas zapisywania danych." });
-            }
+                return Json(new { success = false, message = "Nie udało się zapisać danych." });
         }
 
-        // Akcja GET dla usuwania
+        // GET: potwierdzenie usunięcia
         [HttpGet]
-        public IActionResult Delete(int ID)
+        public IActionResult Delete(int id)
         {
-            var dish = _dishesService.GetDishById(ID);
-
+            var dish = _dishesService.GetDishById(id);
             if (dish == null)
-            {
-                return NotFound("Nie znaleziono dania o podanym ID.");
-            }
+                return NotFound("Dish not found.");
 
             var model = new DishActionModel
             {
                 ID = dish.ID,
-                Name = dish.Name,
-                Description = dish.Description,
-                Price = dish.Price,
-                CategoryID = dish.CategoryID
+                Name = dish.Name
             };
-
             return PartialView("_Delete", model);
         }
 
-        // Akcja POST dla usuwania
+        // POST: usunięcie
         [HttpPost]
-        public JsonResult Delete(DishActionModel model)
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(DishActionModel model)
         {
             if (model == null || model.ID <= 0)
             {
-                return Json(new { success = false, message = "Nieprawidłowe dane wejściowe." });
+                return Json(new { success = false, message = "Invalid data." });
             }
 
             var dish = _dishesService.GetDishById(model.ID);
             if (dish == null)
-            {
-                return Json(new { success = false, message = "Nie znaleziono dania o podanym ID." });
-            }
+                return Json(new { success = false, message = "Dish not found to delete." });
 
             var result = _dishesService.DeleteDish(dish.ID);
-
             if (result)
-            {
-                return Json(new { success = true, message = "Rekord został usunięty." });
-            }
+                return Json(new { success = true, message = "Dish deleted successfully." });
             else
-            {
-                return Json(new { success = false, message = "Błąd podczas usuwania rekordu." });
-            }
+                return Json(new { success = false, message = "Error while deleting dish." });
         }
     }
 }

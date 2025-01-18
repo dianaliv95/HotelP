@@ -1,57 +1,52 @@
 ﻿@model Hotel.ViewModels.GroupSearchResultViewModel
 @using HMS.Entities
 
+
 <h2>Wyniki wyszukiwania</h2>
 <p>Od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
 <p>@Model.AdultCount dorosłych, @Model.ChildrenCount dzieci</p>
 
 @if (Model.FoundRooms != null && Model.FoundRooms.Any())
 {
-    <form method="get">
+    <form method="get" class="form-horizontal">
         <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Wybierz</th>
                     <th>Pokój</th>
-                    <th>MaxGuests</th>
-                    <th>Cena/noc</th>
+                    <th>Maks. Gości</th>
+                    <th>Cena za noc</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var r in Model.FoundRooms)
+                @foreach (var room in Model.FoundRooms)
                 {
                     <tr>
                         <td>
-                            <input type="checkbox" name="roomIds" value="@r.ID" />
+                            <input type="checkbox" name="roomIds" value="@room.ID" />
                         </td>
-                        <td>@r.Name</td>
-                        <td>@(r.Accommodation?.MaxGuests ?? 0)</td>
-                        <td>@r.PricePerNight</td>
+                        <td>@room.Name</td>
+                        <td>@(room.Accommodation?.MaxGuests ?? 0)</td>
+                        <td>@room.PricePerNight</td>
                     </tr>
                 }
             </tbody>
         </table>
 
-        <!-- Ukryte parametry -->
+        <!-- Ukryte parametry przekazywane do akcji CreateGroupReservation -->
         <input type="hidden" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
         <input type="hidden" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
         <input type="hidden" name="adults" value="@Model.AdultCount" />
         <input type="hidden" name="children" value="@Model.ChildrenCount" />
 
         <button type="submit"
-                formaction="@Url.Action("CreateReservation", "PublicBooking")"
-                class="btn btn-primary">
-            Zarezerwuj (pojedyncza)
-        </button>
-
-        <button type="submit"
                 formaction="@Url.Action("CreateGroupReservation", "PublicBooking")"
                 class="btn btn-success">
-            Zarezerwuj (grupowa)
+            Zarezerwuj (rezerwacja grupowa)
         </button>
     </form>
 }
 else
 {
-    <p>Brak dostępnych pokoi.</p>
+    <div class="alert alert-warning">Brak dostępnych pokoi.</div>
 }

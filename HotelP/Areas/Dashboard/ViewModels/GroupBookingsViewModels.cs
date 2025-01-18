@@ -62,5 +62,7 @@ namespace Hotel.Areas.Dashboard.ViewModels
         // Timestamp
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public List<GroupReservationStatus> AllowedGroupStatuses { get; set; }
+            = new List<GroupReservationStatus>();
     }
 }

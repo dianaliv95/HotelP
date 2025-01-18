@@ -137,6 +137,8 @@ namespace Hotel.Areas.Dashboard.Controllers
                 };
 
                 model.TotalPrice = _bookingService.CalculateTotalPrice(room, duration, tempReservation);
+                model.AllowedStatuses = DetermineAllowedStatuses(existing);
+
                 return PartialView("_BookingForm", model);
             }
             else
@@ -156,6 +158,12 @@ namespace Hotel.Areas.Dashboard.Controllers
 
                 model.Duration = (model.DateTo - model.FromDate).Days;
                 model.TotalPrice = 0m;
+                model.AllowedStatuses = new List<ReservationStatus>
+        {
+            ReservationStatus.PreliminaryReservation,
+            ReservationStatus.ConfirmedReservation,
+            ReservationStatus.SettledStay
+        };
 
                 return PartialView("_BookingForm", model);
             }
@@ -246,7 +254,15 @@ namespace Hotel.Areas.Dashboard.Controllers
                 {
                     return Json(new { success = false, message = "Nie znaleziono rezerwacji do edycji." });
                 }
-
+                var allowed = DetermineAllowedStatuses(existing);
+                if (!allowed.Contains(model.Status))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Wybrany status nie jest dozwolony w bieżącym momencie."
+                    });
+                }
                 // Wypełniamy polami z modelu
                 existing.RoomID = model.RoomID.Value;
                 existing.AccommodationID = (await _roomService
@@ -319,6 +335,53 @@ namespace Hotel.Areas.Dashboard.Controllers
 
                 return Json(new { success = true, message = "Rezerwacja utworzona.", totalPrice });
             }
+        }
+
+        private List<ReservationStatus> DetermineAllowedStatuses(Reservation existing)
+        {
+            var today = DateTime.Today;
+            var allowed = new List<ReservationStatus>();
+
+            // Wyróżnijmy finalne statusy (po pobycie):
+            var finalStatuses = new[]
+            {
+        ReservationStatus.NoShow,
+        ReservationStatus.CompletedSettledStay,
+        ReservationStatus.CompletedUnsettledStay
+    };
+
+            // Jeśli pobyt jest w przyszłości (dziś < data przyjazdu):
+            if (today < existing.DateFrom.Date)
+            {
+                // Można np. Preliminary, Confirmed, SettledStay
+                allowed.Add(ReservationStatus.PreliminaryReservation);
+                allowed.Add(ReservationStatus.ConfirmedReservation);
+                allowed.Add(ReservationStatus.SettledStay);
+            }
+            // Jeśli aktualny dzień mieści się w zakresie pobytu
+            else if (today >= existing.DateFrom.Date && today < existing.DateTo.Date)
+            {
+                // Dopuszczamy stany "w trakcie" (Preliminary, Confirmed, SettledStay),
+                // ale jeszcze NIE finalne (bo to jeszcze nie dzień wyjazdu)
+                allowed.Add(ReservationStatus.PreliminaryReservation);
+                allowed.Add(ReservationStatus.ConfirmedReservation);
+                allowed.Add(ReservationStatus.SettledStay);
+            }
+            // Jeśli dzisiaj >= DateTo, to można statusy końcowe:
+            else
+            {
+                // Możemy też pozwolić na UnsettledStay, zależnie od logiki
+                allowed.Add(ReservationStatus.NoShow);
+                allowed.Add(ReservationStatus.CompletedSettledStay);
+                allowed.Add(ReservationStatus.CompletedUnsettledStay);
+                allowed.Add(ReservationStatus.UnsettledStay);
+            }
+
+            // Jeśli chcesz zostawić "ConfirmedReservation" zawsze, dopisz:
+            // allowed.Add(ReservationStatus.ConfirmedReservation);
+
+            // Usuń duplikaty, jeśli się zdarzą
+            return allowed.Distinct().ToList();
         }
 
         [HttpPost]

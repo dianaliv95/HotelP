@@ -23,55 +23,68 @@ namespace Hotel.Controllers
 			_bookingService = bookingService;
 		}
 
-		/// <summary>
-		/// Wyszukiwanie pokoi dla [checkIn, checkOut], X dorosłych, Y dzieci.
-		/// Sprawdzamy status "Available" + ewentualnie brak kolizji.
-		/// </summary>
-		[HttpGet("SearchRooms")]
-		public async Task<IActionResult> SearchRooms(
-			DateTime? checkIn,
-			DateTime? checkOut,
-			int? adults,
-			int? children)
-		{
-			if (!checkIn.HasValue || !checkOut.HasValue)
-				return BadRequest("Brak wymaganych dat.");
-			if (checkOut <= checkIn)
-				return BadRequest("Data wyjazdu musi być po dacie przyjazdu.");
+        /// <summary>
+        /// Wyszukiwanie pokoi dla [checkIn, checkOut], X dorosłych, Y dzieci.
+        /// Sprawdzamy status "Available" + ewentualnie brak kolizji.
+        /// </summary>
+        [HttpGet("SearchRooms")]
+        public async Task<IActionResult> SearchRooms(
+    DateTime? checkIn,
+    DateTime? checkOut,
+    int? adults,
+    int? children)
+        {
+            // 1) Walidacja podstawowa
+            if (!checkIn.HasValue || !checkOut.HasValue)
+                return BadRequest("Brak wymaganych dat przyjazdu/wyjazdu.");
 
-			int totalGuests = (adults ?? 1) + (children ?? 0);
+            if (checkOut <= checkIn)
+                return BadRequest("Data wyjazdu musi być późniejsza niż data przyjazdu.");
 
-			var allRooms = await _roomService.GetAllRoomsAsync();
-			var candidateRooms = allRooms
-				.Where(r => !r.IsBlocked)  // nieblokowane
-				.Where(r => r.Accommodation.MaxGuests >= totalGuests)
-				.ToList();
+            // 2) Łączna liczba gości
+            int totalGuests = (adults ?? 1) + (children ?? 0);
 
-			var freeRooms = new List<Room>();
-			foreach (var room in candidateRooms)
-			{
-				bool free = await _roomService.IsRoomAvailableAsync(
-					room.ID,
-					checkIn.Value,
-					checkOut.Value
-				);
-				if (free) freeRooms.Add(room);
-			}
+            // 3) Pobierz wszystkie pokoje
+            var allRooms = await _roomService.GetAllRoomsAsync();
 
-			var model = new GroupSearchResultViewModel
-			{
-				FromDate = checkIn.Value,
-				ToDate = checkOut.Value,
-				AdultCount = adults ?? 1,
-				ChildrenCount = children ?? 0,
-				FoundRooms = freeRooms
-			};
+            // 4) Wybieramy pokoje, które nie są zablokowane
+            var candidateRooms = allRooms
+                .Where(r => !r.IsBlocked)
+                .ToList();
 
-			// Zwrot widoku GroupSearchResults.cshtml
-			return View("GroupSearchResults", model);
-		}
+            // 5) Sprawdzamy dostępność w danym przedziale
+            var freeRooms = new List<Room>();
+            foreach (var room in candidateRooms)
+            {
+                bool isFree = await _roomService.IsRoomAvailableAsync(
+                    room.ID,
+                    checkIn.Value,
+                    checkOut.Value
+                );
+                if (isFree)
+                    freeRooms.Add(room);
+            }
 
-        [HttpGet("CreateReservation")]
+            // UWAGA: Teraz 'freeRooms' zawiera *wszystkie* wolne pokoje,
+            // nawet jeżeli ich MaxGuests jest < totalGuests.
+            // Dzięki temu można później łączyć kilka pokoi dla 5+ osób.
+
+            // 6) Tworzymy model do widoku
+            var model = new GroupSearchResultViewModel
+            {
+                FromDate = checkIn.Value,
+                ToDate = checkOut.Value,
+                AdultCount = adults ?? 1,
+                ChildrenCount = children ?? 0,
+                FoundRooms = freeRooms
+            };
+
+            // 7) Wyświetlamy w widoku GroupSearchResults
+            return View("GroupSearchResults", model);
+        }
+
+
+        /*[HttpGet("CreateReservation")]
         public IActionResult CreateReservation(
               DateTime fromDate,
               DateTime toDate,
@@ -124,7 +137,7 @@ namespace Hotel.Controllers
             return RedirectToAction("ConfirmSingle", new { id = newReservation.ID });
         }
 
-
+        */
         /// <summary>
         /// GET: formularz tworzenia rezerwacji grupowej (na podstawie roomIds).
         /// </summary>

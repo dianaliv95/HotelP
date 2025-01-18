@@ -65,5 +65,7 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public Room Room { get; set; }
         public string? ContactPhone { get; set; } // Numer kontaktowy
         public string? ContactEmail { get; set; } // Adres e-mail
+        public List<ReservationStatus> AllowedStatuses { get; set; }
+            = new List<ReservationStatus>();
     }
 }

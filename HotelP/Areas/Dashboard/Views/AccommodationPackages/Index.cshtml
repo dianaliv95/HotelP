@@ -1,38 +1,46 @@
-﻿@model Hotel.Areas.Dashboard.ViewModels.AccommodationPackagesListingModel
-
+﻿@model Hotel.Areas.RestaurantManagement.ViewModels.DishesListingModel
 
 <div class="row">
     <div class="col-lg-12">
-        <h2>Accommodation Packages</h2>
+        <h2>Dishes</h2>
         <hr />
     </div>
 </div>
 
+<!-- Form wyszukiwania + przycisk Create -->
 <div class="row mb-3">
     <div class="col-lg-12">
-        <form>
+        <form method="get" asp-action="Index" asp-controller="Dishes" asp-area="RestaurantManagement">
             <div class="input-group">
-                <input type="text" name="searchterm" class="form-control" placeholder="Search." value="@Model.SearchTerm" />
+                <input type="text" name="searchTerm" class="form-control"
+                       placeholder="Search Dishes" value="@Model.SearchTerm" />
 
-                @if (Model.AccommodationTypes != null && Model.AccommodationTypes.Count() > 0)
-                {
-                    <select name="AccommodationTypeID" class="form-control">
-                        <option value="0">Select Type</option>
-                        @foreach (var AccommodationType in Model.AccommodationTypes)
+                <select name="categoryId" class="form-select">
+                    <option value="">-- All Categories --</option>
+                    @if (Model.Categories != null)
+                    {
+                        foreach (var category in Model.Categories)
                         {
-                            <option value="@AccommodationType.ID" @(AccommodationType.ID == Model.AccommodationTypeID ? "selected" : string.Empty)>
-                                @AccommodationType.Name
+                            <option value="@category.ID" @(category.ID == Model.SelectedCategoryId ? "selected" : null)>
+                                @category.Name
                             </option>
                         }
-                    </select>
-                }
+                    }
+                </select>
 
                 <div class="input-group-append">
-                    <button class="btn btn-outline-primary" type="submit"> <i class="fa-solid fa-magnifying-glass mr-1"></i> Szukaj</button>
-                    <a href="@Url.Action("Index", "AccommodationPackages")" class="btn btn-outline-secondary"> <i class="fa-solid fa-rotate-right mr-1"></i> Reset </a>
-                    <button data-href="@Url.Action("Action", "AccommodationPackages", new { area = "Dashboard" })"
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Search
+                    </button>
+
+                    <a href="@Url.Action("Index", "Dishes", new { area = "RestaurantManagement" })"
+                       class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                    </a>
+
+                    <button type="button"
+                            data-href="@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })"
                             class="btn btn-outline-success create-btn"
-                            type="button"
                             data-bs-toggle="modal"
                             data-bs-target="#actionModal">
                         <i class="fa-solid fa-plus mr-1"></i> Create
@@ -43,29 +51,25 @@
     </div>
 </div>
 
+<!-- Lista Dishes w partialu _Listing -->
 <div class="row">
     <div class="col-lg-12">
-        @{
-            Html.RenderPartial("_Listing", Model);
-        }
+        @Html.Partial("_Listing", Model.Dishes)
     </div>
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+<div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
     </div>
 </div>
 
 @section Scripts {
     <script>
-
         //---------------------------------------------------
         // A. Obsługa przycisków Create / Edit / Delete
         //---------------------------------------------------
-        // Zależnie od Twojego kodu, przypisz odpowiednie selektory (np. .create-btn, .edit-btn, .delete-btn)
-
-        // Przykład: wczytuje partial do modala przy kliknięciu "Create"
+        // 1) CREATE
         $(document).on("click", ".create-btn", function (e) {
             e.preventDefault();
             const url = $(this).data("href");
@@ -73,10 +77,12 @@
             $.get(url, function (responseHtml) {
                 $("#actionModal .modal-dialog").html(responseHtml);
                 $("#actionModal").modal("show");
+            }).fail(function () {
+                alert("Failed to load the Create form.");
             });
         });
 
-        // Analogicznie przy "Edit"
+        // 2) EDIT
         $(document).on("click", ".edit-btn", function (e) {
             e.preventDefault();
             const url = $(this).data("href");
@@ -84,10 +90,12 @@
             $.get(url, function (responseHtml) {
                 $("#actionModal .modal-dialog").html(responseHtml);
                 $("#actionModal").modal("show");
+            }).fail(function () {
+                alert("Failed to load the Edit form.");
             });
         });
 
-        // Analogicznie przy "Delete"
+        // 3) DELETE
         $(document).on("click", ".delete-btn", function (e) {
             e.preventDefault();
             const url = $(this).data("href");
@@ -95,50 +103,50 @@
             $.get(url, function (responseHtml) {
                 $("#actionModal .modal-dialog").html(responseHtml);
                 $("#actionModal").modal("show");
+            }).fail(function () {
+                alert("Failed to load the Delete form.");
             });
         });
 
-        // Obsługa potwierdzenia usunięcia (przycisk "Delete" wewnątrz modala)
+        //---------------------------------------------------
+        // B. Obsługa potwierdzenia Delete (wewnątrz modala)
+        //---------------------------------------------------
         $(document).on("click", "#deleteButton", function (e) {
             e.preventDefault();
-            const formData = $("#deleteAccommodationPackagesForm").serialize();
+            const formData = $("#deleteDishForm").serialize();
 
             $.ajax({
-                url: '@Url.Action("Delete", "AccommodationPackages")',
+                url: '@Url.Action("Delete", "Dishes", new { area = "RestaurantManagement" })',
                 type: 'POST',
                 data: formData,
                 success: function (result) {
                     if (result && result.success) {
-                        alert("Rekord został pomyślnie usunięty!");
+                        alert("Dish has been successfully deleted!");
                         $("#actionModal").modal("hide");
                         location.reload();
                     } else {
-                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                        alert("Error: " + (result.message || "Unknown error."));
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error("Status błędu:", status);
-                    console.error("Błąd:", error);
-                    console.error("Odpowiedź serwera:", xhr.responseText);
-                    alert("Wystąpił błąd podczas usuwania rekordu.");
+                    console.error("Error status:", status);
+                    console.error("Error message:", error);
+                    console.error("Server response:", xhr.responseText);
+                    alert("An error occurred while deleting the record.");
                 }
             });
         });
 
-
         //---------------------------------------------------
-        // B. Upload plików (#selectPictures) -> Dashboard/UploadPictures
+        // C. Upload plików (#selectPictures) -> Dashboard/UploadPictures
+        // (jeśli chcesz, by Dish miał zdjęcia analogicznie do AccommodationPackage)
         //---------------------------------------------------
         $(document).on("change", "#selectPictures", function () {
-            console.log("Zmiana pliku w input#selectPictures. Pliki:", this.files);
-
-            var pictures = this.files;
+            var files = this.files;
             var formData = new FormData();
 
-            for (var i = 0; i < pictures.length; i++) {
-                console.log("Dodaję do formData plik:", pictures[i].name);
-                // Klucz "Picture" -> [FromForm] List<IFormFile> Picture w kontrolerze
-                formData.append("Picture", pictures[i]);
+            for (var i = 0; i < files.length; i++) {
+                formData.append("Picture", files[i]);
             }
 
             $.ajax({
@@ -149,95 +157,71 @@
                 contentType: false
             })
                 .done(function (response) {
-                    console.log("== Odpowiedź serwera (UploadPictures) ==", response);
-
-                    // Zakładam, że response to tablica obiektów: [{ id=..., url=... }, ...]
+                    // Zwracane dane: [{ id, url }, ...]
                     for (var i = 0; i < response.length; i++) {
                         var pic = response[i];
                         console.log("Dodaję #picturesArea obrazek o ID =", pic.id, ", url =", pic.url);
 
-                        // W partialu `_Action.cshtml` powinieneś mieć <div id="imageTemplate" style="display:none;"> z <img>
-                        // Tworzymy klona:
                         var $template = $("#imageTemplate").clone();
                         $template.removeAttr("id");
                         $template.show();
 
-                        // Ustawiamy src, data-id, itp.
                         $template.find("img").attr("src", "/images/site/" + pic.url);
                         $template.find("img").attr("data-id", pic.id);
 
-                        // Doklejamy do #picturesArea
                         $("#picturesArea").append($template.html());
                     }
                 })
                 .fail(function (xhr, status, error) {
-                    alert("Błąd przy uploadzie plików!");
-                    console.error("== Odpowiedź serwera (UploadPictures Error) ==");
-                    console.error("Status:", status);
-                    console.error("Error:", error);
-                    console.error("Response text:", xhr.responseText);
+                    alert("Failed to upload pictures.");
+                    console.error("Status:", status, "Error:", error);
                 });
         });
 
-
         //---------------------------------------------------
-        // C. Kliknięcie przycisku #saveButton -> AccommodationPackages/Action
+        // D. Kliknięcie #saveButton -> wywołanie akcji Dishes/Action (POST)
+        // (o ile masz w partialu `#saveButton`).
         //---------------------------------------------------
         $(document).on("click", "#saveButton", function (e) {
             e.preventDefault();
-            console.log("== Zdarzenie #saveButton kliknięte ==");
 
-            // 1. Zbieramy ID-y obrazków:
+            // Zbieranie ID obrazków:
             var pictureIDs = [];
             $("#picturesArea img").each(function () {
-                var picID = $(this).attr("data-id");
-                console.log("Znaleziono obrazek z data-id =", picID);
-                if (picID) {
-                    pictureIDs.push(picID);
-                }
+                var pid = $(this).attr("data-id");
+                if (pid) pictureIDs.push(pid);
             });
 
-            // 2. Wpisujemy do hidden #pictureIDs
             $("#pictureIDs").val(pictureIDs.join());
-            console.log("Ustawiam #pictureIDs =", $("#pictureIDs").val());
 
-            // 3. Serializacja formularza
-            var formData = $("#createAccommodationPackagesForm").serialize();
-            console.log("Seryjalizacja formularza:\n", formData);
+            // Wysyłka formularza
+            var formData = $("#createDishForm").serialize();
 
-            // 4. AJAX
             $.ajax({
-                url: '@Url.Action("Action", "AccommodationPackages")',
+                url: '@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })',
                 type: 'POST',
                 data: formData,
-                success: function (result) {
-                    console.log("== Odpowiedź serwera (success) ==", result);
-
-                    if (result && result.success) {
-                        alert("Dane zostały zapisane pomyślnie!");
+                success: function (res) {
+                    if (res && res.success) {
+                        alert("Dish saved successfully!");
                         $("#actionModal").modal("hide");
                         location.reload();
                     } else {
-                        $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
-                        alert("Błąd: " + (result.message || "Nieznany błąd."));
+                        alert("Error: " + (res.message || "Unknown error."));
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error("== Odpowiedź serwera (error) ==");
-                    console.error("Status błędu:", status);
-                    console.error("Treść błędu:", error);
-                    console.error("Odpowiedź serwera:", xhr.responseText);
-                    alert("Wystąpił błąd podczas zapisu danych. Sprawdź logi w konsoli.");
+                    alert("Error saving dish. Check console logs.");
+                    console.error("xhr:", xhr.responseText);
                 }
             });
         });
 
-
         //---------------------------------------------------
-        // D. Funkcja removeMe -> usuwanie <img> z #picturesArea
+        // E. Funkcja removeMe(el) do usuwania <img>
+        // (z partial `_Action.cshtml`).
         //---------------------------------------------------
         window.removeMe = function (element) {
-            console.log("Usuwam obrazek z data-id =", $(element).attr("data-id"));
             $(element).remove();
         };
 

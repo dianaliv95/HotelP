@@ -159,14 +159,14 @@
         <div class="mb-3">
             <label>Status rezerwacji</label>
             <select class="form-select" name="Status">
-                @foreach (ReservationStatus s in Enum.GetValues(typeof(ReservationStatus)))
-                {
-                    <option value="@s" @(s == Model.Status ? "selected" : "")>
-                        @s.GetDisplayName()
-                    </option>
-                }
-            </select>
-        </div>
+               @foreach (var s in Model.AllowedStatuses)
+    {
+        <option value="@s" @(s == Model.Status ? "selected" : "")>
+            @s.GetDisplayName()
+        </option>
+    }
+</select>
+</div>
 
         <!-- Łączna kwota (podgląd) -->
         <div class="mb-3">

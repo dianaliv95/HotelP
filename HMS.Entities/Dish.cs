@@ -9,6 +9,9 @@
 
         // Relacja do kategorii
         public int CategoryID { get; set; }
-        public Category Category { get; set; }
+        public virtual Category Category { get; set; }
+
+        // Lista powiązanych zdjęć
+        public virtual List<DishPicture> DishPictures { get; set; } = new();
     }
 }

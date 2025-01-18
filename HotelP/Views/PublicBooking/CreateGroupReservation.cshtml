@@ -1,54 +1,69 @@
 ﻿@model Hotel.ViewModels.CreateGroupReservationViewModel
 
-<h2>Potwierdź rezerwację grupową</h2>
+<div class="container" style="max-width: 700px; margin-top: 30px;">
+    <h2 class="mb-4">Potwierdź rezerwację</h2>
 
-<form method="post" asp-action="CreateGroupReservation" asp-controller="PublicBooking">
-    @Html.AntiForgeryToken()
+    <form method="post" asp-action="CreateGroupReservation" asp-controller="PublicBooking">
+        @Html.AntiForgeryToken()
 
-    <!-- Ukryte pola dat i gości -->
-    <input type="hidden" asp-for="FromDate" />
-    <input type="hidden" asp-for="ToDate" />
-    <input type="hidden" asp-for="AdultCount" />
-    <input type="hidden" asp-for="ChildrenCount" />
+        <!-- Ukryte pola (daty, liczba gości) -->
+        <input type="hidden" asp-for="FromDate" />
+        <input type="hidden" asp-for="ToDate" />
+        <input type="hidden" asp-for="AdultCount" />
+        <input type="hidden" asp-for="ChildrenCount" />
 
-    <!-- Ukryte ID pokojów -->
-    @foreach (var rid in Model.SelectedRoomIDs)
-    {
-        <input type="hidden" name="SelectedRoomIDs" value="@rid" />
-    }
+        <!-- Ukryte ID pokojów -->
+        @foreach (var rid in Model.SelectedRoomIDs)
+        {
+            <input type="hidden" name="SelectedRoomIDs" value="@rid" />
+        }
 
-    <div>
-        <p>Od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
-        <p>Liczba dorosłych: @Model.AdultCount, dzieci: @Model.ChildrenCount</p>
-        <p>Wybrane pokoje: @string.Join(", ", Model.SelectedRoomIDs)</p>
-    </div>
+        <div class="alert alert-info">
+            <p class="mb-0">
+                Od: <strong>@Model.FromDate.ToShortDateString()</strong> do: <strong>@Model.ToDate.ToShortDateString()</strong><br />
+                Dorośli: <strong>@Model.AdultCount</strong>, Dzieci: <strong>@Model.ChildrenCount</strong><br />
+                Wybrane pokoje: <strong>@string.Join(", ", Model.SelectedRoomIDs)</strong>
+            </p>
+        </div>
 
-    <hr />
-    <div>
-        <label>Imię</label>
-        <input asp-for="FirstName" />
-    </div>
+        <hr />
 
-    <div>
-        <label>Nazwisko</label>
-        <input asp-for="LastName" />
-    </div>
+        <div class="form-group mb-3">
+            <label for="FirstName" class="form-label">Imię</label>
+            <input asp-for="FirstName"
+                   class="form-control"
+                   id="FirstName"
+                   placeholder="Wpisz imię" />
+        </div>
 
-    <div>
-        <label>Numer kontaktowy</label>
-        <input asp-for="ContactPhone" />
-    </div>
-    <div>
-        <label>Adres e-mail</label>
-        <input asp-for="ContactEmail" type="email" />
-    </div>
-    <div>
-        <label>Wyżywienie</label>
-        <select asp-for="IsBreakfastIncluded">
-            <option value="false">Bez śniadania</option>
-            <option value="true">Ze śniadaniem</option>
-        </select>
-    </div>
+        <div class="form-group mb-3">
+            <label for="LastName" class="form-label">Nazwisko</label>
+            <input asp-for="LastName"
+                   class="form-control"
+                   id="LastName"
+                   placeholder="Wpisz nazwisko" />
+        </div>
 
-    <button type="submit">Zatwierdź rezerwację</button>
-</form>
+        <div class="form-group mb-3">
+            <label for="ContactPhone" class="form-label">Numer kontaktowy</label>
+            <input asp-for="ContactPhone"
+                   class="form-control"
+                   id="ContactPhone"
+                   type="tel"
+                   placeholder="Wpisz numer telefonu" />
+        </div>
+
+        <div class="form-group mb-4">
+            <label for="ContactEmail" class="form-label">Adres e-mail</label>
+            <input asp-for="ContactEmail"
+                   class="form-control"
+                   id="ContactEmail"
+                   type="email"
+                   placeholder="Wpisz adres e-mail" />
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Zatwierdź rezerwację
+        </button>
+    </form>
+</div>

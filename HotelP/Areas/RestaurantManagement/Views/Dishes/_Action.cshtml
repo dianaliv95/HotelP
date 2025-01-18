@@ -12,103 +12,153 @@
                 <span>Create Dish</span>
             }
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
+
     <div class="modal-body">
         <form id="createDishForm">
             @Html.AntiForgeryToken()
             <input type="hidden" name="ID" value="@Model.ID" />
 
-            <!-- Nazwa dania -->
             <div class="mb-3">
-                <label for="nameInput" class="form-label">Name</label>
-                <input type="text" class="form-control" id="nameInput" name="Name" placeholder="Enter Dish Name" value="@Model.Name" required />
-                <div class="invalid-feedback">Please enter a valid dish name.</div>
+                <label class="form-label">Dish Name</label>
+                <input type="text" class="form-control" name="Name"
+                       value="@Model.Name" required />
             </div>
 
-            <!-- Kategorie (dropdown) -->
             <div class="mb-3">
-                <label for="categorySelect" class="form-label">Category</label>
-                <select class="form-select" id="categorySelect" name="CategoryID" required>
-                    <option value="">Select a category</option>
-                    @foreach (var category in Model.Categories)
+                <label class="form-label">Category</label>
+                <select class="form-select" name="CategoryID" required>
+                    <option value="">-- Select Category --</option>
+                    @foreach (var cat in Model.Categories)
                     {
-                        <option value="@category.ID" @(category.ID == Model.CategoryID ? "selected" : "")>
-                            @category.Name
+                        <option value="@cat.ID" @(cat.ID == Model.CategoryID ? "selected" : "")>
+                            @cat.Name
                         </option>
                     }
                 </select>
-                <div class="invalid-feedback">Please select a category.</div>
             </div>
 
-            <!-- Cena dania -->
             <div class="mb-3">
-                <label for="priceInput" class="form-label">Price</label>
-                <input type="number" class="form-control" id="priceInput" name="Price" placeholder="Enter Dish Price" value="@Model.Price" step="0.01" min="0.01" required />
-                <div class="invalid-feedback">Please enter a valid price (minimum 0.01).</div>
+                <label class="form-label">Price</label>
+                <input type="number" class="form-control" name="Price"
+                       step="0.01" min="0.01"
+                       value="@Model.Price" required />
             </div>
 
-            <!-- Opis dania -->
             <div class="mb-3">
-                <label for="descriptionInput" class="form-label">Description</label>
-                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter Dish Description">@Model.Description</textarea>
-                <div class="invalid-feedback">Please provide a valid description.</div>
+                <label class="form-label">Description</label>
+                <textarea class="form-control"
+                          name="Description">@Model.Description</textarea>
+            </div>
+
+            <!-- Upload plików -->
+            <div class="mb-3">
+                <label class="form-label">Pictures</label>
+                <input id="selectPictures" type="file" name="Picture" multiple
+                       class="form-control" />
+
+                <!-- Hidden do ID-ów wgranych zdjęć -->
+                <input type="hidden" id="pictureIDs" name="PictureIDs" />
+            </div>
+
+            <!-- Podgląd miniatur -->
+            <div id="picturesArea">
+                @if (Model.DishPictures != null && Model.DishPictures.Any())
+                {
+                    foreach (var dp in Model.DishPictures)
+                    {
+                        <img src="/images/site/@dp.Picture.URL"
+                             style="width:80px; margin:3px; cursor:pointer;"
+                             data-id="@dp.PictureID"
+                             onclick="removeMe(this)" />
+                    }
+                }
             </div>
         </form>
 
-        <div class="errorDiv"></div>
+        <div class="errorDiv text-danger"></div>
     </div>
+
     <div class="modal-footer">
         <button id="saveButton" type="button" class="btn btn-primary">
-            <i class="fa-solid fa-floppy-disk mr-1"></i> Save
+            Save
         </button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="fa-solid fa-xmark mr-1"></i> Close
+            Close
         </button>
     </div>
 </div>
 
+<!-- Template do klonowania obrazka -->
+<div id="imageTemplate" style="display:none;">
+    <img src="" style="width:80px; margin:3px; cursor:pointer;" onclick="removeMe(this)" />
+</div>
+
 @section Scripts {
     <script>
-        $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault();
+        // Upload
+        $(document).on("change", "#selectPictures", function () {
+            var files = this.files;
+            var formData = new FormData();
 
-            const formData = $("#createDishForm").serialize(); // Serializacja danych formularza
+            for (var i = 0; i < files.length; i++) {
+                formData.append("Picture", files[i]);
+            }
 
             $.ajax({
-                url: '@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })',
+                url: '@Url.Action("UploadPictures", "Dashboard", new { area = "Dashboard" })',
                 type: 'POST',
                 data: formData,
-                success: function (result) {
-                    if (result && result.success) {
-                        alert("Dish saved successfully!");
-                        $("#actionModal").modal("hide"); // Ukrycie modal
-                        location.reload(); // Odświeżenie strony
-                    } else {
-                        $(".errorDiv").html(result.message || "An unknown error occurred.");
-                        alert(result.message || "An error occurred.");
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    // res => [ {id=..., url=...}, ... ]
+                    for (var i = 0; i < res.length; i++) {
+                        var pic = res[i];
+                        var $tmpl = $("#imageTemplate").clone();
+                        $tmpl.removeAttr("id").show();
+                        $tmpl.find("img").attr("src", "/images/site/" + pic.url);
+                        $tmpl.find("img").attr("data-id", pic.id);
+                        $("#picturesArea").append($tmpl.html());
                     }
                 },
-                error: function (xhr, status, error) {
-                    console.error("Error:", error);
-                    console.error("Response:", xhr.responseText);
-                    alert("Failed to save the dish. Please try again.");
+                error: function () {
+                    alert("Error uploading files");
                 }
             });
         });
 
-        // Walidacja pól formularza
-        (function () {
-            const forms = document.querySelectorAll('.needs-validation');
-            Array.from(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
+        // removeMe
+        window.removeMe = function (imgElem) {
+            $(imgElem).remove();
+        };
+
+        // SAVE
+        $(document).on("click", "#saveButton", function () {
+            // Zbieramy ID-ki
+            var ids = [];
+            $("#picturesArea img").each(function () {
+                var pid = $(this).attr("data-id");
+                if (pid) ids.push(pid);
             });
-        })();
+            $("#pictureIDs").val(ids.join());
+
+            var formData = $("#createDishForm").serialize();
+            $.post('@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })',
+                formData,
+                function (res) {
+                    if (res && res.success) {
+                        alert("Dish saved!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        $(".errorDiv").text(res.message || "Unknown error");
+                    }
+                })
+                .fail(function () {
+                    alert("Server error saving dish.");
+                });
+        });
     </script>
 }

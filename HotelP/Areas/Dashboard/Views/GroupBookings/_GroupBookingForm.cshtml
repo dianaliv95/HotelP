@@ -137,13 +137,17 @@
         <div class="mb-3">
             <label>Status</label>
             <select class="form-select" name="RStatus">
-                @foreach (GroupReservationStatus rs in Enum.GetValues(typeof(GroupReservationStatus)))
+                @if (Model.AllowedGroupStatuses != null)
                 {
-                    <option value="@rs" @(rs == Model.RStatus ? "selected" : "")>
-                        @rs.GetDisplayName()
-                    </option>
+                    foreach (var st in Model.AllowedGroupStatuses)
+                    {
+                        <option value="@st" @(st == Model.RStatus ? "selected" : "")>
+                            @st.GetDisplayName()
+                        </option>
+                    }
                 }
             </select>
+
         </div>
 
         <div class="mb-3">

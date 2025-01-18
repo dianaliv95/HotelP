@@ -23,6 +23,8 @@ namespace HMS.Data
         public DbSet<Picture> Pictures { get; set; }
         public DbSet<GroupReservation> GroupReservations { get; set; }
         public DbSet<GroupReservationRoom> GroupReservationRooms { get; set; }
+        public DbSet<DishPicture> DishPictures { get; set; }
+
 
         public DbSet<AccommodationPicture> AccommodationPictures { get; set; }
         public DbSet<AccommodationPackagePicture> AccommodationPackagePictures { get; set; }
@@ -123,6 +125,18 @@ namespace HMS.Data
                 .WithMany(c => c.Dishes)
                 .HasForeignKey(d => d.CategoryID)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DishPicture>()
+    .HasOne(dp => dp.Dish)
+    .WithMany(d => d.DishPictures) // lub .WithMany(d => d.DishPictures) jeśli dodasz nawigację w Dish
+    .HasForeignKey(dp => dp.DishID)
+    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DishPicture>()
+                .HasOne(dp => dp.Picture)
+                .WithMany()
+                .HasForeignKey(dp => dp.PictureID)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // 12. Unikalność w TableReservation
             modelBuilder.Entity<TableReservation>()

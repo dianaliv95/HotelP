@@ -66,7 +66,7 @@ namespace Hotel.Areas.Dashboard.Controllers
                 if (existing == null)
                     return NotFound("Nie znaleziono rezerwacji grupowej.");
 
-                // Wypełniamy model widoku
+                // Uzupełniamy model
                 var model = new GroupBookingActionModel
                 {
                     ID = existing.ID,
@@ -77,55 +77,52 @@ namespace Hotel.Areas.Dashboard.Controllers
                     ToDate = existing.ToDate,
                     AdultCount = existing.AdultCount,
                     ChildrenCount = existing.ChildrenCount,
-
-                    // Pola posiłków
                     BreakfastAdults = existing.BreakfastAdults,
                     BreakfastChildren = existing.BreakfastChildren,
                     LunchAdults = existing.LunchAdults,
                     LunchChildren = existing.LunchChildren,
                     DinnerAdults = existing.DinnerAdults,
                     DinnerChildren = existing.DinnerChildren,
-
                     IsPaid = existing.IsPaid,
                     PaymentMethod = (PaymentsMethod?)existing.PaymentMethod,
                     RStatus = existing.RStatus,
                     ContactPhone = existing.ContactPhone,
                     ContactEmail = existing.ContactEmail,
-
-                    // Lista pokoi w rezerwacji
                     SelectedRoomIDs = existing.GroupReservationRooms
                         .Select(x => x.RoomID)
                         .ToList()
                 };
 
-                // Ładujemy wszystkie pokoje, ale dostępne:
+                // Pobierz listę wszystkich pokoi
                 var allRooms = await _roomService.GetAllRoomsAsync();
-                // Filtr: status == "Available" *lub* są w rezerwacji
+
+                // Pokój jest widoczny, jeśli: status=="Available" LUB jest już w rezerwacji
                 var availableRooms = allRooms
                     .Where(r => r.Status == "Available" || model.SelectedRoomIDs.Contains(r.ID))
                     .ToList();
 
                 model.AvailableRooms = availableRooms;
 
-                // Możemy wstępnie policzyć cenę (tylko do podglądu).
+                // Wstępna kalkulacja ceny do wyświetlenia
                 var tempGR = new GroupReservation
                 {
                     FromDate = model.FromDate,
                     ToDate = model.ToDate,
-                    // Przypisujemy posiłki
                     BreakfastAdults = model.BreakfastAdults,
                     BreakfastChildren = model.BreakfastChildren,
                     LunchAdults = model.LunchAdults,
                     LunchChildren = model.LunchChildren,
                     DinnerAdults = model.DinnerAdults,
                     DinnerChildren = model.DinnerChildren,
-                    // Tymczasowo utworzymy listę "wybranych" pokoi
                     GroupReservationRooms = availableRooms
                         .Where(r => model.SelectedRoomIDs.Contains(r.ID))
                         .Select(r => new GroupReservationRoom { Room = r })
                         .ToList()
                 };
                 model.TotalPrice = _groupBookingService.CalculateTotalPrice(tempGR);
+
+                // Ustalenie dozwolonych statusów
+                model.AllowedGroupStatuses = DetermineAllowedGroupStatuses(existing);
 
                 return PartialView("_GroupBookingForm", model);
             }
@@ -142,21 +139,26 @@ namespace Hotel.Areas.Dashboard.Controllers
                     ToDate = DateTime.Today.AddDays(1),
                     AdultCount = 1,
                     ChildrenCount = 0,
-
-                    // Pola posiłków domyślnie 0
                     BreakfastAdults = 0,
                     BreakfastChildren = 0,
                     LunchAdults = 0,
                     LunchChildren = 0,
                     DinnerAdults = 0,
                     DinnerChildren = 0,
-
                     AvailableRooms = availableRooms
                 };
+
+                // Dla nowej rezerwacji -> statusy wstępne
+                model.AllowedGroupStatuses = new List<GroupReservationStatus>
+        {
+            GroupReservationStatus.PreliminaryReservation,
+            GroupReservationStatus.ConfirmedReservation
+        };
 
                 return PartialView("_GroupBookingForm", model);
             }
         }
+
 
         /// <summary>
         /// POST: zapis tworzenia / edycji rezerwacji grupowej (AJAX).
@@ -164,14 +166,13 @@ namespace Hotel.Areas.Dashboard.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrEdit(GroupBookingActionModel model)
         {
-            // 1) Walidacja
             if (!ModelState.IsValid)
                 return Json(new { success = false, message = "Nieprawidłowe dane formularza." });
 
             if (model.SelectedRoomIDs == null || !model.SelectedRoomIDs.Any())
                 return Json(new { success = false, message = "Wybierz przynajmniej jeden pokój." });
 
-            // 2) Tworzymy/uzupełniamy obiekt encji:
+            // Tworzymy tymczasowy obiekt GroupReservation do zapisu
             var groupReservation = new GroupReservation
             {
                 ID = model.ID,
@@ -182,15 +183,12 @@ namespace Hotel.Areas.Dashboard.Controllers
                 ToDate = model.ToDate,
                 AdultCount = model.AdultCount,
                 ChildrenCount = model.ChildrenCount,
-
-                // ============== KLUCZOWE: Posiłki =================
                 BreakfastAdults = model.BreakfastAdults,
                 BreakfastChildren = model.BreakfastChildren,
                 LunchAdults = model.LunchAdults,
                 LunchChildren = model.LunchChildren,
                 DinnerAdults = model.DinnerAdults,
                 DinnerChildren = model.DinnerChildren,
-
                 IsPaid = model.IsPaid,
                 PaymentMethod = (PaymentMethod?)model.PaymentMethod,
                 RStatus = model.RStatus,
@@ -199,18 +197,26 @@ namespace Hotel.Areas.Dashboard.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            // 3) Rozróżniamy nową rezerwację vs. edycję
             if (model.ID > 0)
             {
                 // Edycja
+                var existing = await _groupBookingService.GetByIdAsync(model.ID);
+                if (existing == null)
+                    return Json(new { success = false, message = "Rezerwacja nie znaleziona." });
+
+                // (opcjonalnie) sprawdź, czy model.RStatus znajduje się w dozwolonych:
+                var allowed = DetermineAllowedGroupStatuses(existing);
+                if (!allowed.Contains(model.RStatus))
+                {
+                    return Json(new { success = false, message = "Ten status jest niedozwolony w obecnym momencie." });
+                }
+
                 bool ok = await _groupBookingService.UpdateAsync(groupReservation, model.SelectedRoomIDs);
                 if (!ok)
                     return Json(new { success = false, message = "Błąd przy aktualizacji rezerwacji grupowej." });
 
-                // Po udanej edycji -> obliczamy cenę
                 var updated = await _groupBookingService.GetByIdAsync(model.ID);
                 decimal totalPrice = _groupBookingService.CalculateTotalPrice(updated);
-
                 return Json(new { success = true, message = "Rezerwacja grupowa zaktualizowana.", totalPrice });
             }
             else
@@ -230,6 +236,42 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
         }
 
+        private List<GroupReservationStatus> DetermineAllowedGroupStatuses(GroupReservation gr)
+        {
+            var today = DateTime.Today;
+            var allowed = new List<GroupReservationStatus>();
+
+            // Wyróżnijmy finalne statusy
+            var finalStatuses = new[]
+            {
+        GroupReservationStatus.NoShow,
+        GroupReservationStatus.CompletedSettledStay,
+        GroupReservationStatus.CompletedUnsettledStay
+    };
+
+            if (today < gr.FromDate.Date)
+            {
+                // Rezerwacja w przyszłości
+                allowed.Add(GroupReservationStatus.PreliminaryReservation);
+                allowed.Add(GroupReservationStatus.ConfirmedReservation);
+            }
+            else if (today >= gr.FromDate.Date && today < gr.ToDate.Date)
+            {
+                // Rezerwacja w trakcie
+                allowed.Add(GroupReservationStatus.PreliminaryReservation);
+                allowed.Add(GroupReservationStatus.ConfirmedReservation);
+                allowed.Add(GroupReservationStatus.SettledStay);
+                allowed.Add(GroupReservationStatus.UnsettledStay);
+            }
+            else
+            {
+                // Dzień wyjazdu lub po
+                allowed.AddRange(finalStatuses);
+                allowed.Add(GroupReservationStatus.UnsettledStay);
+            }
+
+            return allowed.Distinct().ToList();
+        }
         /// <summary>
         /// GET: wyświetla partial z potwierdzeniem usunięcia.
         /// </summary>

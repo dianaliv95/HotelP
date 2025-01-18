@@ -265,151 +265,100 @@
 }
 
 
-
 <div id="colorlib-dining-bar">
 	<div class="container">
 		<div class="row">
 			<div class="col-md-6 col-md-offset-3 text-center colorlib-heading animate-box">
 				<span><i class="icon-star-full"></i><i class="icon-star-full"></i><i class="icon-star-full"></i><i class="icon-star-full"></i><i class="icon-star-full"></i></span>
 				<h2>Posiłki &amp; Bar</h2>
-				<p>Nasz bar to doskonałe miejsce na relaks przy aromatycznej kawie lub orzeźwiającym koktajlu, oferując szeroki wybór alkoholi i przekąsek. Posiłki przygotowywane są ze świeżych składników i pełne są autorskich kompozycji smakowych, które zadowolą nawet najbardziej wymagające podniebienia.</p>
+				<p>Opis ogólny – dynamiczne kategorie z bazy.</p>
 			</div>
 		</div>
 		<div class="row">
 			<div class="diningbar-flex">
-				<div class="half animate-box">
-					<ul class="nav nav-tabs text-center" role="tablist">
-						<li role="presentation" class="active"><a href="#mains" aria-controls="mains" role="tab" data-toggle="tab">Dania główne</a></li>
-						<li role="presentation"><a href="#desserts" aria-controls="desserts" role="tab" data-toggle="tab">Desery</a></li>
-						<li role="presentation"><a href="#drinks" aria-controls="drinks" role="tab" data-toggle="tab">Napoje</a></li>
-					</ul>
-					<!-- Tab panes -->
-					<div class="tab-content">
-						<div role="tabpanel" class="tab-pane active" id="mains">
-							<div class="row">
-								<div class="col-md-12">
-									<ul class="menu-dish">
-										<li>
-											<figure class="image"><img src="images/menu-1.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$25.99</span>
-												<h3>Grilled Pork</h3>
-												<p class="cat">Meat / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-2.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$30.99</span>
-												<h3>Tuna Roast Source</h3>
-												<p class="cat">Tuna / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-3.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$40.00</span>
-												<h3>Roast Beef (4 sticks)</h3>
-												<p class="cat">Crab / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-4.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$20.50</span>
-												<h3>Salted Fried Chicken</h3>
-												<p class="cat">Crab / Potatoes / Rice</p>
-											</div>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
 
-						<div role="tabpanel" class="tab-pane" id="desserts">
-							<div class="row">
-								<div class="col-md-12">
-									<ul class="menu-dish">
-										<li>
-											<figure class="image"><img src="images/menu-1.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$39.90</span>
-												<h3>Fried Potatoes with Garlic</h3>
-												<p class="cat">Viggies / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-3.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$20.99</span>
-												<h3>Tuna Roast Source</h3>
-												<p class="cat">Tuna / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-3.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$50.00</span>
-												<h3>Roast Beef (4 sticks)</h3>
-												<p class="cat">Crab / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-4.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">$29.00</span>
-												<h3>Salted Fried Chicken</h3>
-												<p class="cat">Crab / Potatoes / Rice</p>
-											</div>
-										</li>
-									</ul>
+				<!-- Lewa połówka z zakładkami -->
+				<div class="half animate-box">
+					<!-- Tworzymy dynamiczną listę zakładek w <ul> -->
+					<ul class="nav nav-tabs text-center" role="tablist">
+
+						@* Iterujemy po kategoriach – i-th kategoria = i-ta zakładka *@
+						@for (int i = 0; i < Model.DishCategories.Count; i++)
+						{
+							var cat = Model.DishCategories[i];
+							// Pierwsza zakładka "active"
+							var liClass = i == 0 ? "active" : "";
+							var hrefId = $"tab-cat-{cat.ID}";
+
+							<li role="presentation" class="@liClass">
+								<a href="#@hrefId"
+								   aria-controls="@hrefId"
+								   role="tab"
+								   data-toggle="tab">
+									@cat.Name
+								</a>
+							</li>
+						}
+					</ul>
+
+					<!-- Treść zakładek -->
+					<div class="tab-content">
+						@for (int i = 0; i < Model.DishCategories.Count; i++)
+						{
+							var cat = Model.DishCategories[i];
+							var divClass = i == 0 ? "tab-pane active" : "tab-pane";
+							var divId = $"tab-cat-{cat.ID}";
+
+							// Wybrane dania z danej kategorii:
+							var catDishes = Model.AllDishes
+							.Where(d => d.CategoryID == cat.ID)
+							.ToList();
+
+							<div role="tabpanel" class="@divClass" id="@divId">
+								<div class="row">
+									<div class="col-md-12">
+										<ul class="menu-dish">
+											@if (catDishes.Any())
+											{
+												@foreach (var dish in catDishes)
+												{
+													var firstPic = dish.DishPictures
+													?.FirstOrDefault()?.Picture?.URL
+													?? "default-image.jpg";
+
+													<li>
+														<figure class="image">
+															<img src="@($"/images/site/{firstPic}")" alt="@dish.Name" />
+														</figure>
+														<div class="text">
+															<span class="price">
+																@dish.Price.ToString("C")
+															</span>
+															<h3>@dish.Name</h3>
+															<p class="cat">@dish.Description</p>
+														</div>
+													</li>
+												}
+											}
+											else
+											{
+												<li>
+													<div class="alert alert-warning">
+														Brak dań w tej kategorii.
+													</div>
+												</li>
+											}
+										</ul>
+									</div>
 								</div>
 							</div>
-						</div>
-						<!--miejsce do dodawania posiłków JEDZENIE-->
-						<div role="tabpanel" class="tab-pane" id="drinks">
-							<div class="row">
-								<div class="col-md-12">
-									<ul class="menu-dish">
-										<li>
-											<figure class="image"><img src="images/menu-8.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">25.00zł</span>
-												<h3>Fried Potatoes with Garlic</h3>
-												<p class="cat">Viggies / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-9.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">20.50zł</span>
-												<h3>Tuna Roast Source</h3>
-												<p class="cat">Tuna / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-3.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">30.00 zł</span>
-												<h3>Roast Beef (4 sticks)</h3>
-												<p class="cat">Crab / Potatoes / Rice</p>
-											</div>
-										</li>
-										<li>
-											<figure class="image"><img src="images/menu-4.jpg" alt="Free Bootstrap Template by colorlib.com"></figure>
-											<div class="text">
-												<span class="price">29.99 zł</span>
-												<h3>Salted Fried Chicken</h3>
-												<p class="cat">Crab / Potatoes / Rice</p>
-											</div>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
+						}
 					</div>
-				</div><!-- end half -->
-				<div class="half diningbar-img" style="background-image: url('images/cover_img_1.jpg');"></div><!-- end half -->
+				</div> <!-- end half -->
+				<!-- Prawa połówka: np. zdjęcie w tle -->
+				<div class="half diningbar-img"
+					 style="background-image: url('/images/cover_img_1.jpg');">
+				</div>
 			</div>
 		</div>
 	</div>

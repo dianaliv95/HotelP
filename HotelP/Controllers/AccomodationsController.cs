@@ -93,11 +93,23 @@ namespace Hotel.Controllers
 
             return View(model);
         }
+		[HttpGet]
+		public async Task<IActionResult> AllAccommodations()
+		{
+			// Przykład: pobierz wszystkie zakwaterowania (możesz użyć serwisu):
+			var accommodations = await _accommodationService.GetAllAccommodationsAsync();
 
-        /// <summary>
-        /// Odpowiednik starej: public ActionResult CheckAvailability(CheckAccomodationAvailabilityViewModel model)
-        /// </summary>
-        [HttpPost]
+			// lub wersja synchroniczna:
+			// var accommodations = _accommodationService.GetAllAccommodations();
+
+			// Zwracamy widok:
+			return View(accommodations);
+		}
+
+		/// <summary>
+		/// Odpowiednik starej: public ActionResult CheckAvailability(CheckAccomodationAvailabilityViewModel model)
+		/// </summary>
+		[HttpPost]
         public IActionResult CheckAvailability(CheckAccommodationAvailabilityViewModel model)
         {
             // Logika sprawdzania

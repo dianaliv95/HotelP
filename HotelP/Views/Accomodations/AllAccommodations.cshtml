@@ -1,0 +1,116 @@
+﻿@model IEnumerable<HMS.Entities.Accommodation>
+
+<!-- Sekcja "hero" na górze (jak w snippet) -->
+<aside id="colorlib-hero">
+    <div class="flexslider">
+        <ul class="slides">
+            <li style="background-image: url('/images/img_bg_5.jpg');">
+                <div class="overlay"></div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12 col-md-offset-3 slider-text">
+                            <div class="slider-text-inner slider-text-inner2 text-center">
+                                <h2>Choose our Best</h2>
+                                <h1>Rooms &amp; Suites</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+<!-- Główna sekcja z listą pokoi -->
+<div id="colorlib-rooms" class="colorlib-light-grey">
+    <div class="container">
+        <div class="row">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var accommodation in Model)
+                {
+                    // Pobierz link do zdjęcia (np. z relacji AccommodationPictures)
+                    var backgroundImage = GetAccommodationPicture(accommodation);
+
+                    <div class="col-md-4 room-wrap animate-box">
+                        <!-- Tło w <a> – styl Colorlib -->
+                        <a href="@backgroundImage"
+                           class="room image-popup-link"
+                           style="background-image: url('@backgroundImage');">
+                        </a>
+
+                        <div class="desc text-center">
+                            <!-- Gwiazdki, np. 3/5 -->
+                            <span class="rate-star">
+                                <i class="icon-star-full full"></i>
+                                <i class="icon-star-full full"></i>
+                                <i class="icon-star-full full"></i>
+                                <i class="icon-star-full"></i>
+                                <i class="icon-star-full"></i>
+                            </span>
+
+                            <!-- Nazwa zakwaterowania -->
+                            <h3>
+                                @accommodation.Name
+                            </h3>
+
+                            <!-- Cena (jeżeli chcesz z pakietu) -->
+                            <p class="price">
+                                <span class="currency">$</span>
+                                <span class="price-room">
+                                    @accommodation.AccommodationPackage?.FeePerNight.ToString("F2")
+                                    <!-- lub .ToString("C") -->
+                                </span>
+                                <span class="per">/ per night</span>
+                            </p>
+
+                            <ul>
+                                <li>
+                                    @* Liczba pokoi etc. Jeżeli chcesz:
+                            e.g. "No. of Rooms: 10" *@
+                                    <i class="icon-check"></i>
+                                    Rooms: @accommodation.AccommodationPackage?.NoofRoom
+                                </li>
+                                <!-- Dopisz tutaj, co chcesz w li... -->
+                            </ul>
+
+                            <!-- Przycisk Book now/ Szczegóły -->
+                            <p>
+                                <a class="btn btn-primary btn-book"
+                                   href="@Url.Action("Details", "Accomodations",
+                                            new { accomodationPackageID = accommodation.AccommodationPackage?.ID })">
+                                   Szczegóły
+                                </a>
+                            </p>
+                        </div>
+                    </div> <!-- .col-md-4 -->
+                }
+            }
+            else
+            {
+                <div class="col-xs-12">
+                    <div class="alert alert-warning" role="alert" style="margin-top: 20px;">
+                        No accommodations found.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    // Funkcja pobierająca URL pierwszego zdjęcia:
+    private string GetAccommodationPicture(HMS.Entities.Accommodation accommodation)
+    {
+        // Jeśli w encji jest kolekcja "AccommodationPictures":
+        var firstPic = accommodation?.AccommodationPictures?.FirstOrDefault();
+        if (firstPic?.Picture != null)
+        {
+            // Ścieżkę dopasuj do swojego folderu:
+            return "/images/site/" + firstPic.Picture.URL;
+        }
+
+        // Zwróć coś domyślnego
+        return "/images/room-1.jpg";
+    }
+}

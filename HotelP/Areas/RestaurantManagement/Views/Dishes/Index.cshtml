@@ -1,153 +1,216 @@
 ﻿@model Hotel.Areas.RestaurantManagement.ViewModels.DishesListingModel
 
-@{
-    ViewData["Title"] = "Dishes";
-}
-
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-md-12">
         <h2>Dishes</h2>
         <hr />
     </div>
 </div>
 
-<!-- Formularz wyszukiwania i przycisk Create -->
 <div class="row mb-3">
-    <div class="col-lg-12">
-        <form method="get" asp-action="Index" asp-controller="Dishes" asp-area="RestaurantManagement">
+    <div class="col-md-12">
+        <form method="get"
+              asp-action="Index"
+              asp-controller="Dishes"
+              asp-area="RestaurantManagement">
             <div class="input-group">
-                <input type="text" name="searchTerm" class="form-control" placeholder="Search Dishes" value="@Model.SearchTerm" />
+                <input type="text"
+                       name="searchTerm"
+                       class="form-control"
+                       placeholder="Search..."
+                       value="@Model.SearchTerm" />
 
                 <select name="categoryId" class="form-select">
                     <option value="">All Categories</option>
-                    @foreach (var category in Model.Categories)
+                    @foreach (var c in Model.Categories)
                     {
-                        <option value="@category.ID" @(category.ID == Model.SelectedCategoryId ? "selected" : "")>
-                            @category.Name
+                        <option value="@c.ID" @(c.ID == Model.SelectedCategoryId ? "selected" : "")>
+                            @c.Name
                         </option>
                     }
                 </select>
 
-                <button class="btn btn-outline-primary" type="submit">
-                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Search
-                </button>
-                <a href="@Url.Action("Index", "Dishes", new { area = "RestaurantManagement" })" class="btn btn-outline-secondary">
-                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset
-                </a>
-                <button type="button" data-href="@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })"
-                        class="create-btn btn btn-outline-success"
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="@Url.Action("Index", "Dishes", new { area = "RestaurantManagement" })"
+                   class="btn btn-secondary">Reset</a>
+
+                <button type="button"
+                        data-href="@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })"
+                        class="btn btn-success create-btn"
                         data-bs-toggle="modal"
                         data-bs-target="#actionModal">
-                    <i class="fa-solid fa-plus mr-1"></i> Create
+                    + Create
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Lista dań -->
+<!-- Tabela dań -->
 <div class="row">
-    <div class="col-lg-12">
-        @Html.Partial("_Listing", Model)
+    <div class="col-md-12">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Dish</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Pictures</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Dishes)
+                {
+                    <tr>
+                        <td>@d.Name</td>
+                        <td>@d.Category?.Name</td>
+                        <td>@d.Price.ToString("C")</td>
+                        <td>
+                            @if (d.DishPictures != null && d.DishPictures.Any())
+                            {
+                                @foreach (var dp in d.DishPictures)
+                                {
+                                    <img src="/images/site/@dp.Picture.URL"
+                                         style="width:40px; height:40px; margin:2px;" />
+                                }
+                            }
+                        </td>
+                        <td>
+                            <button data-href="@Url.Action("Action", "Dishes", new { area = "RestaurantManagement", id = d.ID })"
+                                    class="btn btn-primary edit-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#actionModal">
+                                Edit
+                            </button>
+                            <button data-href="@Url.Action("Delete", "Dishes", new { area = "RestaurantManagement", id = d.ID })"
+                                    class="btn btn-danger delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#actionModal">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-    </div>
+
+<!-- Modal wspólny (Create/Edit/Delete) -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog"></div>
 </div>
 
 @section Scripts {
     <script>
-        // Obsługa kliknięcia przycisku "Create"
-        $(document).on("click", ".create-btn", function () {
-            const url = $(this).data("href"); // Pobierz URL z przycisku
-            $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data); // Załaduj dane do modal-a
-                $("#actionModal").modal("show"); // Wyświetl modal
-            }).fail(function () {
-                alert("Failed to load the Create form.");
-            });
-        });
-
-        // Obsługa kliknięcia przycisku "Edit"
-        $(document).on("click", ".edit-btn", function () {
+        //------------------------------------------------------
+        // 1) Ładowanie partiali do modala (Create/Edit/Delete)
+        //------------------------------------------------------
+        $(document).on("click", ".create-btn, .edit-btn, .delete-btn", function () {
             const url = $(this).data("href");
-            $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data);
+            $.get(url, function (html) {
+                $("#actionModal .modal-dialog").html(html);
                 $("#actionModal").modal("show");
-            }).fail(function () {
-                alert("Failed to load the Edit form.");
             });
         });
 
-        // Obsługa kliknięcia przycisku "Delete"
-        $(document).on("click", ".delete-btn", function () {
-            const url = $(this).data("href");
-            $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data);
-                $("#actionModal").modal("show");
-            }).fail(function () {
-                alert("Failed to load the Delete form.");
-            });
-        });
+        //------------------------------------------------------
+        // 2) Obsługa uploadu plików -> #selectPictures
+        //    (delegacja w dokumencie, bo #selectPictures pojawia się w partialu)
+        //------------------------------------------------------
+        $(document).on("change", "#selectPictures", function () {
+            const files = this.files;
+            const formData = new FormData();
 
-        // Skrypt dla przycisku "Save" w Create/Edit
-        $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+            for (let i = 0; i < files.length; i++) {
+                formData.append("Picture", files[i]);
+            }
 
-            const formData = $("#createDishForm").serialize(); // Serializacja danych formularza
-
+            // Upload do Dashboard/UploadPictures
             $.ajax({
-                url: '@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                url: '@Url.Action("UploadPictures", "Dashboard", new { area = "Dashboard" })',
                 type: 'POST',
                 data: formData,
-                success: function (result) {
-                    if (result && result.success) {
-                        alert("Dish has been successfully saved!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
-                    } else {
-                        $(".errorDiv").html(result.message || "An unknown error occurred.");
-                        alert("Error: " + (result.message || "Unknown error."));
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    // res => [{id=..., url=...}, ...]
+                    for (let i = 0; i < res.length; i++) {
+                        const pic = res[i];
+                        // Kopiujemy #imageTemplate
+                        const $tmpl = $("#imageTemplate").clone();
+                        $tmpl.removeAttr("id").show();
+                        $tmpl.find("img").attr("src", "/images/site/" + pic.url);
+                        $tmpl.find("img").attr("data-id", pic.id);
+
+                        $("#picturesArea").append($tmpl.html());
                     }
                 },
-                error: function (xhr, status, error) {
-                    console.error("Error status:", status);
-                    console.error("Error message:", error);
-                    console.error("Server response:", xhr.responseText);
-                    alert("An error occurred while saving data.");
+                error: function () {
+                    alert("Error uploading files");
                 }
             });
         });
 
-        // Skrypt dla przycisku "Delete" w Delete modal
-        $(document).on("click", "#deleteButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+        //------------------------------------------------------
+        // 3) Usunięcie miniatury (klik) -> removeMe()
+        //------------------------------------------------------
+        window.removeMe = function (imgElem) {
+            $(imgElem).remove();
+        };
 
-            const formData = $("#deleteDishForm").serialize(); // Serializacja danych formularza
-
-            $.ajax({
-                url: '@Url.Action("Delete", "Dishes", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
-                type: 'POST',
-                data: formData,
-                success: function (result) {
-                    if (result && result.success) {
-                        alert("Dish has been successfully deleted!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
-                    } else {
-                        alert("Error: " + (result.message || "Unknown error."));
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error status:", status);
-                    console.error("Error message:", error);
-                    console.error("Server response:", xhr.responseText);
-                    alert("An error occurred while deleting the record.");
-                }
+        //------------------------------------------------------
+        // 4) Klik SAVE (w partialu `_Action.cshtml`)
+        //    - event delegation
+        //------------------------------------------------------
+        $(document).on("click", "#saveButton", function () {
+            // Zbierz ID-ki w #picturesArea
+            const ids = [];
+            $("#picturesArea img").each(function () {
+                const pid = $(this).attr("data-id");
+                if (pid) ids.push(pid);
             });
+            $("#pictureIDs").val(ids.join());
+
+            // Serializuj i POST
+            const formData = $("#createDishForm").serialize();
+            $.post('@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })',
+                formData,
+                function (res) {
+                    if (res && res.success) {
+                        alert("Dish saved successfully!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        $(".errorDiv").text(res.message || "Unknown error");
+                    }
+                })
+                .fail(function () {
+                    alert("Server error saving dish.");
+                });
+        });
+
+        //------------------------------------------------------
+        // 5) Klik DELETE (w partialu `_Delete.cshtml`)
+        //------------------------------------------------------
+        $(document).on("click", "#deleteButton", function () {
+            const formData = $("#deleteDishForm").serialize();
+            $.post('@Url.Action("Delete", "Dishes", new { area = "RestaurantManagement" })',
+                formData,
+                function (res) {
+                    if (res && res.success) {
+                        alert("Dish deleted!");
+                        $("#actionModal").modal("hide");
+                        location.reload();
+                    } else {
+                        alert(res.message || "Error deleting dish.");
+                    }
+                })
+                .fail(function () {
+                    alert("Server error deleting dish.");
+                });
         });
     </script>
 }

@@ -86,20 +86,23 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-xs-2">
-							<div id="colorlib-logo"><a href="index.html">Hotel Paradise</a></div>
+							<div id="colorlib-logo"><a href="@Url.Action("Index", "Home")">Hotel Paradise</a></div>
 						</div>
 						<div class="col-xs-10 text-right menu-1">
 							<ul>
 								<li class="active">
 									<a href="@Url.Action("Index", "Home")">Strona główna</a>
 								</li>
-								<li class="has-dropdown">
-									<a href="rooms-suites.html">Pokoje</a>
-									<ul class="dropdown">
-										
-									</ul>
+								<li>
+									<a href="@Url.Action("AllAccommodations", "Accomodations")">
+										Pokoje
 								</li>
-								<li><a href="dining-bar.html">Posiłki &amp; Bar</a></li>
+								<li>
+									<a href="@Url.Action("AllCategoriesDishes", "Dishe")">
+										Posiłki &amp; Bar
+									</a>
+								</li>
+
 								<li><a href="aminities.html">Udogodnienia</a></li>
 								
 								<li><a href="about.html">O nas</a></li>

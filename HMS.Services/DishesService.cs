@@ -19,13 +19,15 @@ namespace HMS.Services
             _logger = logger;
         }
 
-        // Pobieranie wszystkich dań
+        // Pobieranie wszystkich dań (z kategorią i zdjęciami)
         public List<Dish> GetAllDishes()
         {
             try
             {
                 return _context.Dishes
-                    .Include(d => d.Category) // Pobierz kategorię dla każdego dania
+                    .Include(d => d.Category)
+                    .Include(d => d.DishPictures)
+                        .ThenInclude(dp => dp.Picture)
                     .ToList();
             }
             catch (Exception ex)
@@ -35,21 +37,23 @@ namespace HMS.Services
             }
         }
 
-        // Pobieranie dań na podstawie filtrów
-        public List<Dish> SearchDishes(string searchTerm, int? categoryId = null)
+        // Wyszukiwanie dań z opcjonalnym filtrowaniem po categoryId
+        public List<Dish> SearchDishes(string searchTerm, int? categoryId)
         {
             try
             {
                 var query = _context.Dishes
-                    .Include(d => d.Category) // Pobierz powiązane kategorie
+                    .Include(d => d.Category)
+                    .Include(d => d.DishPictures).ThenInclude(dp => dp.Picture)
                     .AsQueryable();
 
-                if (!string.IsNullOrEmpty(searchTerm))
+                if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    query = query.Where(d => d.Name.ToLower().Contains(searchTerm.ToLower()));
+                    searchTerm = searchTerm.ToLower();
+                    query = query.Where(d => d.Name.ToLower().Contains(searchTerm));
                 }
 
-                if (categoryId.HasValue)
+                if (categoryId.HasValue && categoryId.Value > 0)
                 {
                     query = query.Where(d => d.CategoryID == categoryId.Value);
                 }
@@ -63,13 +67,14 @@ namespace HMS.Services
             }
         }
 
-        // Pobieranie dania na podstawie ID
+        // Pobieranie dania po ID
         public Dish GetDishById(int id)
         {
             try
             {
                 return _context.Dishes
-                    .Include(d => d.Category) // Pobierz kategorię powiązaną z daniem
+                    .Include(d => d.Category)
+                    .Include(d => d.DishPictures).ThenInclude(dp => dp.Picture)
                     .FirstOrDefault(d => d.ID == id);
             }
             catch (Exception ex)
@@ -79,32 +84,82 @@ namespace HMS.Services
             }
         }
 
-        // Dodawanie nowego dania
-        public bool SaveDish(Dish dish)
+        // Dodawanie nowego dania (z listą pictureIDs)
+        public bool SaveDish(Dish newDish, List<int> pictureIDs)
         {
             try
             {
-                _context.Dishes.Add(dish);
-                return _context.SaveChanges() > 0;
+                // Inicjalizuj kolekcję
+                newDish.DishPictures = new List<DishPicture>();
+
+                if (pictureIDs != null)
+                {
+                    foreach (var picId in pictureIDs)
+                    {
+                        newDish.DishPictures.Add(new DishPicture
+                        {
+                            PictureID = picId
+                        });
+                    }
+                }
+
+                _context.Dishes.Add(newDish);
+                var changes = _context.SaveChanges();
+                _logger.LogInformation("SaveDish: SaveChanges => {Changes}", changes);
+
+                return changes > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Błąd podczas zapisywania nowego dania.");
+                _logger.LogError(ex, "Błąd podczas zapisu nowego dania.");
                 return false;
             }
         }
 
-        // Edytowanie dania
-        public bool UpdateDish(Dish dish)
+        // Aktualizacja dania (nadpisanie zdjęć)
+        public bool UpdateDish(Dish dish, List<int> pictureIDs)
         {
             try
             {
-                _context.Entry(dish).State = EntityState.Modified;
-                return _context.SaveChanges() > 0;
+                // Wczytujemy oryginał
+                var existing = _context.Dishes
+                    .Include(d => d.DishPictures)
+                    .FirstOrDefault(d => d.ID == dish.ID);
+
+                if (existing == null)
+                {
+                    _logger.LogWarning("Dish (ID={0}) nie istnieje.", dish.ID);
+                    return false;
+                }
+
+                // Usuwamy stare powiązania
+                _context.DishPictures.RemoveRange(existing.DishPictures);
+
+                // Nadpisujemy podstawowe pola
+                _context.Entry(existing).CurrentValues.SetValues(dish);
+
+                // Dodajemy nowe
+                existing.DishPictures = new List<DishPicture>();
+
+                if (pictureIDs != null && pictureIDs.Count > 0)
+                {
+                    foreach (var picId in pictureIDs)
+                    {
+                        existing.DishPictures.Add(new DishPicture
+                        {
+                            PictureID = picId
+                        });
+                    }
+                }
+
+                var changes = _context.SaveChanges();
+                _logger.LogInformation("UpdateDish: SaveChanges => {Changes}", changes);
+
+                return changes > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Błąd podczas aktualizacji dania o ID {ID}.", dish.ID);
+                _logger.LogError(ex, "Błąd podczas aktualizacji dania {0}", dish.ID);
                 return false;
             }
         }
@@ -115,36 +170,39 @@ namespace HMS.Services
             try
             {
                 var dish = _context.Dishes.Find(id);
-
                 if (dish == null)
                 {
-                    _logger.LogWarning("Nie znaleziono dania o ID {ID} do usunięcia.", id);
+                    _logger.LogWarning("Nie znaleziono dania ID={0} do usunięcia.", id);
                     return false;
                 }
 
                 _context.Dishes.Remove(dish);
-                return _context.SaveChanges() > 0;
+                var changes = _context.SaveChanges();
+                _logger.LogInformation("DeleteDish: SaveChanges => {Changes}", changes);
+
+                return changes > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Błąd podczas usuwania dania o ID {ID}.", id);
+                _logger.LogError(ex, "Błąd podczas usuwania dania o ID={0}.", id);
                 return false;
             }
         }
 
-        // Pobieranie dań na podstawie kategorii
+        // Dania według kategorii
         public List<Dish> GetDishesByCategory(int categoryId)
         {
             try
             {
                 return _context.Dishes
-                    .Include(d => d.Category) // Pobierz powiązane kategorie
+                    .Include(d => d.Category)
+                    .Include(d => d.DishPictures).ThenInclude(dp => dp.Picture)
                     .Where(d => d.CategoryID == categoryId)
                     .ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Błąd podczas pobierania dań dla kategorii o ID {CategoryID}.", categoryId);
+                _logger.LogError(ex, "Błąd podczas pobierania dań dla kategorii={0}.", categoryId);
                 return new List<Dish>();
             }
         }
