@@ -1,6 +1,7 @@
 ﻿using HMS.Entities;
 using HMS.ViewModels;
 using Hotel.Areas.Dashboard.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
-
+    [Authorize(Roles = "Admin,admin")]
     public class UsersController : Controller
     {
         private readonly UserService _userService;

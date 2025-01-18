@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace Hotel.Areas.RestaurantManagement.Controllers
 {
     [Area("RestaurantManagement")]
+    [Authorize(Roles = "Admin,admin")]
+
     public class CategoriesController : Controller
     {
         private readonly CategoryService _categoryService;

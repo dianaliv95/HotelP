@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 namespace Hotel.Areas.Dashboard.Controllers
 {
 	[Area("Dashboard")]
-	public class DashboardController : Controller
+    [Authorize(Roles = "Admin,admin,Recepcja")]
+    public class DashboardController : Controller
 	{
 		private readonly IWebHostEnvironment _hostingEnvironment;
         

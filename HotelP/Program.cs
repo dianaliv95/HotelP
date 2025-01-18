@@ -84,6 +84,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
+
 // --- 10) Konfiguracja trybu dev vs. prod ---
 if (app.Environment.IsDevelopment())
 {
@@ -136,6 +137,70 @@ RecurringJob.AddOrUpdate<AutoReleaseJob>(
     "5 0 * * *"  // codziennie o 00:05
 );
 
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    try
+    {
+        var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+        // 1) Tworzymy (jeœli nie istnieje) rolê "GlobalAdmin"
+        string adminRoleName = "Admin";
+        var adminRoleExists = await roleManager.RoleExistsAsync(adminRoleName);
+        if (!adminRoleExists)
+        {
+            await roleManager.CreateAsync(new IdentityRole(adminRoleName));
+        }
+
+        // 2) Sprawdzamy, czy jest ju¿ user "admin"
+        string adminUsername = "admin@hotel.com";
+        string adminPassword = "adminadmin1";
+
+        // Uwaga: je¿eli chcesz u¿yæ Email = "admin@hotel.com" i Username = "admin", to:
+        //  var adminUser = await userManager.FindByNameAsync(adminUsername);
+        // ewentualnie rozejrzyj siê, czy w UserName i Email chcesz to samo
+        var adminUser = await userManager.FindByNameAsync(adminUsername);
+        if (adminUser == null)
+        {
+            adminUser = new User
+            {
+                UserName = adminUsername,
+                Email = "admin@hotel.com", // albo "admin", jeœli mail nie jest walidowany
+                EmailConfirmed = true      // opcjonalnie oznacz od razu mail jako potwierdzony
+            };
+
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
+            if (result.Succeeded)
+            {
+                // Przypisz go do roli GlobalAdmin
+                await userManager.AddToRoleAsync(adminUser, adminRoleName);
+            }
+            else
+            {
+                // Obs³uga b³êdów tworzenia usera
+                // (np. log do pliku, do Debug)
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"B³¹d tworzenia admina: {error.Description}");
+                }
+            }
+        }
+        else
+        {
+            // Mamy usera "admin" – sprawdŸ, czy ma przypisan¹ rolê:
+            var rolesForAdmin = await userManager.GetRolesAsync(adminUser);
+            if (!rolesForAdmin.Contains(adminRoleName))
+            {
+                await userManager.AddToRoleAsync(adminUser, adminRoleName);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        // Logowanie b³êdu
+        Console.WriteLine($"[SEED ADMIN ERROR]: {ex.Message}");
+    }
+}
 // --- 15) Uruchamianie aplikacji ---
 app.Run();

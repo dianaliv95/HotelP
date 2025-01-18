@@ -5,35 +5,47 @@
 }
 
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-md-12">
         <h2>Categories</h2>
         <hr />
     </div>
 </div>
 
-<!-- Przycisk Create -->
+<!-- Pasek: Search + Reset + Create -->
 <div class="row mb-3">
-    <div class="col-lg-12">
-        <button type="button" data-href="@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })"
-                class="create-btn btn btn-outline-success"
-                data-bs-toggle="modal"
-                data-bs-target="#actionModal"
-                aria-label="Create Category">
-            <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i> Create Category
-        </button>
-    </div>
-</div>
+    <div class="col-md-12">
+        <form method="get"
+              asp-action="Index"
+              asp-controller="Categories"
+              asp-area="RestaurantManagement">
+            <div class="input-group">
 
-<!-- Formularz Search -->
-<div class="row mb-3">
-    <div class="col-lg-12">
-        <form asp-action="Index" method="get" class="row g-3">
-            <div class="col-auto">
-                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search Categories" />
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary mb-3">Search</button>
-                <a href="@Url.Action("Index", "Categories", new { area = "RestaurantManagement" })" class="btn btn-secondary mb-3">Reset</a>
+                <!-- Pole wyszukiwania -->
+                <input type="text"
+                       name="searchTerm"
+                       class="form-control"
+                       placeholder="Search..."
+                       value="@Model.SearchTerm" />
+
+                <!-- Przycisk Filter -->
+                <button type="submit" class="btn btn-primary">
+                    Filter
+                </button>
+
+                <!-- Przycisk Reset -->
+                <a href="@Url.Action("Index", "Categories", new { area = "RestaurantManagement" })"
+                   class="btn btn-secondary">
+                    Reset
+                </a>
+
+                <!-- Przycisk Create Category (moduł okna modalnego) -->
+                <button type="button"
+                        data-href="@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })"
+                        class="btn btn-success create-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#actionModal">
+                    + Create
+                </button>
             </div>
         </form>
     </div>
@@ -41,7 +53,7 @@
 
 <!-- Lista kategorii -->
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-md-12">
         @if (Model.Categories == null)
         {
             <div class="alert alert-danger" role="alert">
@@ -97,73 +109,65 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal wspólny (Create/Edit/Delete) -->
 <div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="spinner-border text-primary m-auto" role="status" id="loadingSpinner" style="display: none;">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+        <!-- Wypełnia się dynamicznie przez AJAX (spinner, partial itp.) -->
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Obsługa kliknięcia przycisków Create, Edit, Delete
+        // Obsługa przycisków Create, Edit, Delete (podobnie jak w Dishes)
         $(document).on("click", ".create-btn, .edit-btn, .delete-btn", function () {
             const url = $(this).data("href");
-            $("#loadingSpinner").show(); // Pokaż spinner
             $.get(url, function (data) {
-                $("#loadingSpinner").hide(); // Ukryj spinner
-                $("#actionModal .modal-dialog").html(data); // Wstrzykuj HTML do modalu
-                $("#actionModal").modal("show"); // Wyświetl modal
+                $("#actionModal .modal-dialog").html(data);
+                $("#actionModal").modal("show");
             }).fail(function () {
-                $("#loadingSpinner").hide();
                 alert("Failed to load the form.");
             });
         });
 
-        // Obsługa kliknięcia przycisku Save w Create/Edit
+        // Obsługa zapisu i usuwania (tak samo jak w Twoim kodzie)...
+
+        // (Przykład) Zapis
         $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+            e.preventDefault();
 
-            const formData = $("#createCategoryForm").serialize(); // Pobierz dane z formularza
-
+            const formData = $("#createCategoryForm").serialize();
             $.ajax({
-                url: '@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                url: '@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })',
                 type: 'POST',
                 data: formData,
                 success: function (result) {
                     if (result && result.success) {
                         alert("Category has been successfully saved!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
+                        $("#actionModal").modal("hide");
+                        location.reload();
                     } else {
                         $(".errorDiv").html(result.message || "An unknown error occurred.");
                         alert("Error: " + (result.message || "Unknown error."));
                     }
                 },
-                error: function (xhr, status, error) {
-                    console.error("Error status:", status);
-                    console.error("Error message:", error);
-                    console.error("Server response:", xhr.responseText);
+                error: function () {
                     alert("An error occurred while saving data.");
                 }
             });
         });
 
-        // Obsługa kliknięcia przycisku Delete w Delete modal
+        // (Przykład) Usunięcie
         $(document).on("click", "#deleteButton", function () {
-            const id = $(this).data("id"); // Pobierz ID z atrybutu data-id
-
+            const id = $(this).data("id");
             $.ajax({
-                url: '@Url.Action("Delete", "Categories", new { area = "RestaurantManagement" })', // Adres akcji kontrolera
+                url: '@Url.Action("Delete", "Categories", new { area = "RestaurantManagement" })',
                 type: 'POST',
                 data: { ID: id },
                 success: function (result) {
                     if (result.success) {
                         alert("Category deleted successfully!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
+                        $("#actionModal").modal("hide");
+                        location.reload();
                     } else {
                         alert(result.message || "An error occurred while deleting the category.");
                     }

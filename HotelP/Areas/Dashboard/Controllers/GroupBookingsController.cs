@@ -7,10 +7,12 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
+    [Authorize(Roles = "Admin,admin,Recepcja")]
     public class GroupBookingsController : Controller
     {
         private readonly GroupBookingService _groupBookingService;

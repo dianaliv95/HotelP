@@ -7,10 +7,12 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
+    [Authorize(Roles = "Admin,admin,Recepcja")]
     public class BookingsController : Controller
     {
         private readonly BookingService _bookingService;

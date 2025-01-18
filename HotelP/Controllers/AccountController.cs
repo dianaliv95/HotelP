@@ -1,4 +1,5 @@
 ﻿using Hotel.Models;
+using HMS.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -7,12 +8,12 @@ namespace Hotel.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
         public AccountController(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager)
+            UserManager<User> userManager,
+            SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -32,7 +33,7 @@ namespace Hotel.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser
+                var user = new User
                 {
                     UserName = model.Email,
                     Email = model.Email
@@ -58,7 +59,15 @@ namespace Hotel.Controllers
 
         // GET: Account/Login
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl = null)
+        {
+            
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
         {
             return View();
         }
@@ -66,7 +75,7 @@ namespace Hotel.Controllers
         // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -78,11 +87,15 @@ namespace Hotel.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Po zalogowaniu – dokąd? 
-                    // Możesz dać np. do obszaru Dashboard: 
+                    // Zamiast na stałe:
                     // return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
-                    return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
 
+                    // 1) Jeśli nie ma returnUrl, to użyj "/Dashboard" jako fallback
+                    returnUrl ??= "/Dashboard";
+
+                    // 2) Bezpieczne przekierowanie
+                    // (LocalRedirect) - upewnia się, że nie przekierowujemy poza nasz host
+                    return LocalRedirect(returnUrl);
                 }
                 else if (result.IsLockedOut)
                 {
@@ -93,6 +106,10 @@ namespace Hotel.Controllers
                     ModelState.AddModelError(string.Empty, "Nieprawidłowe dane logowania.");
                 }
             }
+
+            // Jeśli błąd – wracamy do widoku logowania
+            // Nie zapomnij przekazać returnUrl (żeby zostało w polu hidden w formularzu)
+            ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
 

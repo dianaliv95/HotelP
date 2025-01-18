@@ -5,10 +5,12 @@ using HMS.Entities;
 using Hotel.Areas.Dashboard.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
+    [Authorize(Roles = "Admin,admin")]
     public class RolesController : Controller
     {
         private readonly RoleService _roleService;

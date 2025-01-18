@@ -3,31 +3,58 @@
 @{
     Layout = "~/Views/Shared/_LoginLayout.cshtml";
     ViewData["Title"] = "Rejestracja";
+    var returnUrl = ViewBag.ReturnUrl as string;
 }
 
-<h2>Rejestracja</h2>
+<h2 class="mb-4">@ViewData["Title"]</h2>
 
-<form asp-action="Register" method="post">
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
-    </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password"></span>
-    </div>
-    <div>
-        <label asp-for="ConfirmPassword"></label>
-        <input asp-for="ConfirmPassword" type="password" />
-        <span asp-validation-for="ConfirmPassword"></span>
-    </div>
-    <button type="submit" class="btn btn-success">Zarejestruj</button>
-</form>
+<div class="row justify-content-center">
+    <div class="col-md-6">
 
-<!-- Powrót do logowania -->
-<hr />
-<a asp-action="Login" asp-controller="Account" class="btn btn-link">
-    Masz już konto? Zaloguj się
-</a>
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                Zarejestruj się
+            </div>
+            <div class="card-body">
+                <form asp-action="Register" method="post">
+                    @Html.AntiForgeryToken()
+                   
+
+                    <!-- Obsługa returnUrl (opcjonalnie) -->
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" type="password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-user-plus"></i> Zarejestruj
+                    </button>
+                </form>
+
+                <hr />
+
+                <div class="mt-3">
+                    Masz już konto?
+                    <a asp-action="Login" asp-controller="Account" class="btn btn-link p-0">
+                        Zaloguj się
+                    </a>
+                </div>
+            </div>
+        </div><!-- card -->
+    </div><!-- col-md-6 -->
+</div><!-- row -->

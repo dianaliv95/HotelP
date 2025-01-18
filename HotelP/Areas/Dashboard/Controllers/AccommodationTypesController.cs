@@ -1,11 +1,13 @@
 ﻿using HMS.Entities;
 using HMS.Services;
 using Hotel.Areas.Dashboard.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
+    [Authorize(Roles = "Admin,admin")]
     public class AccommodationTypesController : Controller
     {
         private readonly AccommodationTypesService _AccommodationTypesService;

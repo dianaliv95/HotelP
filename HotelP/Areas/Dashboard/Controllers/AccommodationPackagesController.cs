@@ -2,6 +2,7 @@
 using HMS.Services;
 using HMS.ViewModels;
 using Hotel.Areas.Dashboard.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Linq;
 namespace Hotel.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
+    [Authorize(Roles = "Admin,admin")]
     public class AccommodationPackagesController : Controller
     {
         private readonly AccommodationPackagesService _AccommodationPackagesService;

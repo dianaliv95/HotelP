@@ -1,6 +1,7 @@
 ﻿using HMS.Entities;
 using HMS.Services;
 using Hotel.Areas.RestaurantManagement.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ using System.Linq;
 namespace Hotel.Areas.RestaurantManagement.Controllers
 {
     [Area("RestaurantManagement")]
+    [Authorize(Roles = "Admin,admin")]
+
     public class DishesController : Controller
     {
         private readonly DishesService _dishesService;
