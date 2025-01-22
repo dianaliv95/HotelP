@@ -5,6 +5,6 @@
 <p>Od: @Model.FromDate.ToShortDateString() do: @Model.ToDate.ToShortDateString()</p>
 <p>Liczba osób dorosłych: @Model.AdultCount, dzieci: @Model.ChildrenCount</p>
 
-<p>Łączna kwota: <b>@Model.TotalPrice.ToString("C")</b></p>
+<p>Łączna kwota: <b>@Model.TotalPrice.ToString("000 zł")</b></p>
 
 <a href="@Url.Action("Index", "Home")">Powrót do strony głównej</a>
