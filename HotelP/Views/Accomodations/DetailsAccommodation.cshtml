@@ -1,0 +1,88 @@
+﻿@model HMS.Entities.Accommodation
+
+
+
+@{
+    // Pobieramy skojarzony pakiet
+    var package = Model.AccommodationPackage;
+
+    // Pierwsze zdjęcie pakietu (tzw. miniaturka)
+    var thumbnailPicture = package?.AccomodationPackagePictures?.FirstOrDefault();
+    var thumbnailURL = thumbnailPicture?.Picture?.URL ?? "default.jpg";
+
+    // Podstawowe dane o pakiecie
+    var packageName = package?.Name ?? "No package name";
+    var packageFee = package?.FeePerNight ?? 0;
+    var packageRooms = package?.NoofRoom ?? 0;
+
+    // Dane z samego Accommodation
+    var accommodationName = Model.Name ?? "No name";
+    var accommodationDescription = Model.Description ?? "No description";
+}
+
+<!-- Sekcja hero, analogicznie jak w widoku pakietu -->
+<aside id="colorlib-hero">
+    <div class="flexslider">
+        <ul class="slides">
+            <li style="background-image: url('/images/site/@thumbnailURL');">
+                <div class="overlay"></div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12 col-md-offset-3 slider-text">
+                            <div class="slider-text-inner slider-text-inner2 text-center">
+                                <!-- Wyświetlamy np. nazwę pakietu w <h2> i nazwę Accommodation w <h1> -->
+                                <h2>@packageName</h2>
+                                <h1>@accommodationName</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+
+<!-- Sekcja w stylu "amenities" -->
+<div id="colorlib-amenities">
+    <div class="container">
+        <div class="row">
+            <div class="amenities-flex">
+
+                <!-- Blok tekstowy -->
+                <div class="desc animate-box">
+                    <p class="price">
+                        <span class="currency">zł</span>
+                        <span class="price-room">@packageFee</span>
+                        <span class="per">/ za dobę</span>
+                    </p>
+                    <strong>Rooms: @packageRooms</strong>
+                    <p><strong>Opis:</strong> @accommodationDescription</p>
+
+                </div>
+
+                <!-- Główne zdjęcie pakietu -->
+                <div class="amenities-img animate-box"
+                     style="height:400px; background-image: url('/images/site/@thumbnailURL');">
+                </div>
+
+                @* Pozostałe zdjęcia pakietu (jeśli chcesz je wyświetlać) *@
+                @if (package?.AccomodationPackagePictures != null && package.AccomodationPackagePictures.Count > 1)
+                {
+                    var otherPictures = package.AccomodationPackagePictures
+                    .Where(x => x != thumbnailPicture);
+
+                    foreach (var pic in otherPictures)
+                    {
+                        var picURL = pic?.Picture?.URL ?? "default-image.jpg";
+                        <div class="amenities-img animate-box"
+                             style="height:400px; background-image: url('/images/site/@picURL');">
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+

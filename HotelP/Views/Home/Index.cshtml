@@ -13,7 +13,6 @@
 							<div class="slider-text-inner text-center">
 								<h2>Witaj w Hotelu Paradise</h2>
 								<h1>Hotel Paradise</h1>
-								<p><a class="btn btn-primary btn-demo" href="#"></i> View Detail</a> <a class="btn btn-primary btn-learn">Know More</a></p>
 							</div>
 						</div>
 					</div>
@@ -28,7 +27,6 @@
 							<div class="slider-text-inner text-center">
 								<h2>Jesteś miło widziany</h2>
 								<h1>Wiemy jak spełnić Twoje oczekiwania</h1>
-								<p><a class="btn btn-primary btn-demo" href="#"></i> Zobacz szczegóły</a> <a class="btn btn-primary btn-learn">Dowiedz się więcej</a></p>
 							</div>
 						</div>
 					</div>
@@ -42,7 +40,6 @@
 							<div class="slider-text-inner text-center">
 								<h2>Przyjedź &amp; ciesz się z niezapomianego pobytu</h2>
 								<h1>W sercu luksusowego hotelu</h1>
-								<p><a class="btn btn-primary btn-demo" href="#"></i> View Detail</a> <a class="btn btn-primary btn-learn">Know More</a></p>
 							</div>
 						</div>
 					</div>
@@ -118,7 +115,7 @@
 							<input type="submit"
 								   name="submit"
 								   id="submit"
-								   value="Search"
+								   value="Szukaj"
 								   class="btn btn-primary btn-block" />
 						</div>
 					</div> <!-- .row -->
@@ -185,8 +182,8 @@
 						<i class="icon-star-full"></i><i class="icon-star-full"></i>
 						<i class="icon-star-full"></i>
 					</span>
-					<h2>Accomodations</h2>
-					<p>Select Accomodation Type</p>
+					<h2>Noclegi</h2>
+					<p>Wybierz rodzaj zakwaterowania</p>
 					<p>
 						@foreach (var xType in Model.AccommodationTypes)
 						{
@@ -223,7 +220,7 @@
 								<div class="item">
 									<!-- Link do szczegółów pakietu:
 										 nazwa i cena (FeePerNight) -->
-									<a href="@Url.Action("Details", "Accomodations",
+									<a href="@Url.Action("DetailsPackage", "Accomodations",
                                         new { accomodationPackageID = package.ID })"
 									   class="room image-popup-link"
 									   style="background-image: url('/images/site/@thumbnail');">
@@ -231,7 +228,7 @@
 
 									<div class="desc text-center">
 										<h3>
-											<a href="@Url.Action("Details", "Accomodations",
+											<a href="@Url.Action("DetailsPackage", "Accomodations",
                                                     new { accomodationPackageID = package.ID })">
 												@package.Name
 											</a>
@@ -241,7 +238,7 @@
 										</p>
 										<p>
 											<a class="btn btn-primary btn-book"
-											   href="@Url.Action("Details", "Accomodations",
+											   href="@Url.Action("DetailsPackage", "Accomodations",
                                                     new { accomodationPackageID = package.ID })">
 												Szczegóły
 											</a>
@@ -253,7 +250,7 @@
 					</div>
 
 					<div class="col-md-12 text-center animate-box">
-						<a href="#">View all rooms <i class="icon-arrow-right3"></i></a>
+						<a href="@Url.Action("AllAccommodations", "Accomodations")">Zobacz wszystkie pokoje <i class="icon-arrow-right3"></i></a>
 					</div>
 				</div>
 

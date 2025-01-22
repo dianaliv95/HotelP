@@ -56,7 +56,7 @@
 
                             <!-- Cena (jeżeli chcesz z pakietu) -->
                             <p class="price">
-                                <span class="currency">$</span>
+                                <span class="currency">zł</span>
                                 <span class="price-room">
                                     @accommodation.AccommodationPackage?.FeePerNight.ToString("F2")
                                     <!-- lub .ToString("C") -->
@@ -77,10 +77,11 @@
                             <!-- Przycisk Book now/ Szczegóły -->
                             <p>
                                 <a class="btn btn-primary btn-book"
-                                   href="@Url.Action("Details", "Accomodations",
-                                            new { accomodationPackageID = accommodation.AccommodationPackage?.ID })">
-                                   Szczegóły
+                                   href="@Url.Action("DetailsAccommodation", "Accomodations",
+        new { id = accommodation.ID })">
+                                    Szczegóły
                                 </a>
+
                             </p>
                         </div>
                     </div> <!-- .col-md-4 -->

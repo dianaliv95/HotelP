@@ -96,6 +96,7 @@
 								<li>
 									<a href="@Url.Action("AllAccommodations", "Accomodations")">
 										Pokoje
+									</a>
 								</li>
 								<li>
 									<a href="@Url.Action("AllCategoriesDishes", "Dishe")">
@@ -103,10 +104,12 @@
 									</a>
 								</li>
 
-								<li><a href="aminities.html">Udogodnienia</a></li>
-								
-								<li><a href="about.html">O nas</a></li>
-								<li><a href="contact.html">Kontakt</a></li>
+								<li>
+									<a href="@Url.Action("About", "Home")">O nas</a>
+								</li>
+								<li>
+									<a href="@Url.Action("Contact", "Home")">Kontakt</a>
+								</li>
 							</ul>
 						</div>
 					</div>
@@ -216,6 +219,9 @@
 	<!-- Main -->
 	<script src="~/js/main.js"></script>
 	<script src="~/js/site.js"></script>
+	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+	<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+
 
 	@RenderSection("Scripts", required: false)
 

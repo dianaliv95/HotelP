@@ -1,0 +1,22 @@
+﻿@using System.Globalization
+@model Hotel.ViewModels.CheckAccommodationAvailabilityViewModel
+
+
+
+<div class="alert alert-success" role="alert">
+    <h4>Dziękujemy za przesłanie zapytania!</h4>
+    <p>Poniżej przesłane przez Ciebie dane:</p>
+    <ul>
+        <li>
+            <strong>Data przyjazdu:</strong> @Model.FromDate.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.GetCultureInfo("en-US"))
+        </li>
+        <li><strong>Liczba nocy:</strong> @Model.Duration</li>
+        <li><strong>Dorośli:</strong> @Model.NoOfAdults</li>
+        <li><strong>Dzieci:</strong> @Model.NoOfChildren</li>
+        <li><strong>Imię gościa:</strong> @Model.Name</li>
+        <li><strong>Email gościa:</strong> @Model.Email</li>
+        <li><strong>Uwagi:</strong> @Model.Notes</li>
+    </ul>
+    <hr />
+    <p>Niebawem skontaktujemy się z Tobą w celu potwierdzenia dostępności.</p>
+</div>

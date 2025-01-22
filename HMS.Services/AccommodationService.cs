@@ -24,8 +24,13 @@ namespace HMS.Services
             try
             {
                 return await _context.Accommodations
-                    .Include(a => a.AccommodationPackage)
-                    .FirstOrDefaultAsync(a => a.ID == id);
+        .Include(a => a.AccommodationPackage)
+        .ThenInclude(ap => ap.AccomodationPackagePictures)
+            .ThenInclude(pp => pp.Picture)
+    .Include(a => a.AccommodationPictures)
+        .ThenInclude(ap => ap.Picture)
+    // ewentualnie dalsze Include, jeśli potrzeba
+    .FirstOrDefaultAsync(a => a.ID == id);
             }
             catch (Exception ex)
             {

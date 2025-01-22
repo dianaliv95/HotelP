@@ -95,6 +95,7 @@ namespace HMS.Services
             return _context.AccommodationPackages
                            .Include(ap => ap.AccomodationPackagePictures)
                            .ThenInclude(pp => pp.Picture)
+                            .Include(ap => ap.Accommodations)
                            .FirstOrDefault(ap => ap.ID == id);
         }
 

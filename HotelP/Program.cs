@@ -7,7 +7,10 @@ using HMS.Entities;
 using HMS.Services;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +84,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
+var cultureInfo = new CultureInfo("en-US");
+// i w UseRequestLocalization
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
+// Mo¿esz skonfigurowaæ RequestLocalization:
 
 var app = builder.Build();
 
@@ -111,6 +120,15 @@ app.UseAuthorization();
 //    wiêc tu wystarczy sam Dashboard, jeœli chcesz.
 app.UseHangfireDashboard();
 
+
+// Dalej routing, kontrolery itp.
+app.MapControllers();
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en-US"),
+    SupportedCultures = new[] { cultureInfo },
+    SupportedUICultures = new[] { cultureInfo }
+});
 // --- 13) Definicja tras (mapowanie kontrolerów) ---
 app.MapControllerRoute(
     name: "Accomodations",
@@ -202,5 +220,6 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine($"[SEED ADMIN ERROR]: {ex.Message}");
     }
 }
+
 // --- 15) Uruchamianie aplikacji ---
 app.Run();

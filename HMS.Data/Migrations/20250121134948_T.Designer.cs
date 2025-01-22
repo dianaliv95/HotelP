@@ -4,6 +4,7 @@ using HMS.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HMS.Data.Migrations
 {
     [DbContext(typeof(HMSContext))]
-    partial class HMSContextModelSnapshot : ModelSnapshot
+    [Migration("20250121134948_T")]
+    partial class T
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,6 +34,9 @@ namespace HMS.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
                     b.Property<int>("AccommodationPackageID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AccommodationPackageID1")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -54,6 +60,8 @@ namespace HMS.Data.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("AccommodationPackageID");
+
+                    b.HasIndex("AccommodationPackageID1");
 
                     b.ToTable("Accommodations");
                 });
@@ -860,10 +868,14 @@ namespace HMS.Data.Migrations
             modelBuilder.Entity("HMS.Entities.Accommodation", b =>
                 {
                     b.HasOne("HMS.Entities.AccommodationPackage", "AccommodationPackage")
-                        .WithMany("Accommodations")
+                        .WithMany()
                         .HasForeignKey("AccommodationPackageID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("HMS.Entities.AccommodationPackage", null)
+                        .WithMany("Accommodations")
+                        .HasForeignKey("AccommodationPackageID1");
 
                     b.Navigation("AccommodationPackage");
                 });

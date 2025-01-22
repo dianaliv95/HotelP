@@ -174,13 +174,3 @@ namespace Hotel.Areas.Dashboard.Controllers
 
 }
 
-
-
-
-
-
-
-
-
-
-

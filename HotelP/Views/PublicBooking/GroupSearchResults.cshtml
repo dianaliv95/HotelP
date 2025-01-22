@@ -25,7 +25,7 @@
                         <td>
                             <input type="checkbox" name="roomIds" value="@room.ID" />
                         </td>
-                        <td>@room.Name</td>
+                        <td>@(room.Accommodation?.Name ?? "Brak nazwy")</td>
                         <td>@(room.Accommodation?.MaxGuests ?? 0)</td>
                         <td>@room.PricePerNight</td>
                     </tr>
@@ -42,7 +42,7 @@
         <button type="submit"
                 formaction="@Url.Action("CreateGroupReservation", "PublicBooking")"
                 class="btn btn-success">
-            Zarezerwuj (rezerwacja grupowa)
+            Zarezerwuj 
         </button>
     </form>
 }

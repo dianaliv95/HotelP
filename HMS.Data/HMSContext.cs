@@ -43,7 +43,7 @@ namespace HMS.Data
             // 2. Relacje: Accommodation -> AccommodationPackage
             modelBuilder.Entity<Accommodation>()
                 .HasOne(a => a.AccommodationPackage)
-                .WithMany()
+                .WithMany(p => p.Accommodations)
                 .HasForeignKey(a => a.AccommodationPackageID)
                 .OnDelete(DeleteBehavior.Restrict);
 

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Mail;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Hotel.Controllers
@@ -73,27 +75,41 @@ namespace Hotel.Controllers
             return View(model);
         }
         [HttpGet]
-        public async Task<IActionResult> Details(int accomodationPackageID)
+        public IActionResult DetailsPackage(int accomodationPackageID)
         {
-            // Tworzymy model. Zakładamy, że w nowej wersji jest to: AccommodationPackageDetailsViewModel
-            var model = new AccommodationPackageDetailsViewModel
+            var package = _accommodationPackagesService.GetAccommodationPackageByID(accomodationPackageID);
+            if (package == null) return NotFound();
+
+            return View("DetailsPackage", new AccommodationPackageDetailsViewModel
             {
-                // Jeśli posiadasz metodę asynchroniczną:
-                AccommodationPackage = _accommodationPackagesService.GetAccommodationPackageByID(accomodationPackageID)
-            };
-
-            // (lub w wersji synchronicznej:)
-            // model.AccommodationPackage = _accommodationPackagesService.GetAccommodationPackageByID(accommodationPackageID);
-
-            if (model.AccommodationPackage == null)
-            {
-                // Możesz zwrócić np. NotFound() lub redirect
-                return NotFound("Package not found");
-            }
-
-            return View(model);
+                AccommodationPackage = package
+            });
         }
-		[HttpGet]
+
+
+        [HttpGet("Accomodations/DetailsAccommodation/{id}")]
+        public async Task<IActionResult> DetailsAccommodation(int id)
+        {
+            try
+            {
+                var accommodation = await _accommodationService.GetAccommodationByIdAsync(id);
+                if (accommodation == null)
+                {
+                    return NotFound("No accommodation with this ID");
+                }
+                return View("DetailsAccommodation", accommodation);
+            }
+            catch (Exception ex)
+            {
+                // Złap błąd i wypisz do loga
+                Console.WriteLine($"ERROR: {ex.Message} \n {ex.StackTrace}");
+                // lub logger
+                return StatusCode(500, "Something went wrong in the server: " + ex.Message);
+            }
+        }
+
+
+        [HttpGet]
 		public async Task<IActionResult> AllAccommodations()
 		{
 			// Przykład: pobierz wszystkie zakwaterowania (możesz użyć serwisu):
@@ -106,16 +122,66 @@ namespace Hotel.Controllers
 			return View(accommodations);
 		}
 
-		/// <summary>
-		/// Odpowiednik starej: public ActionResult CheckAvailability(CheckAccomodationAvailabilityViewModel model)
-		/// </summary>
-		[HttpPost]
+        /// <summary>
+        /// Odpowiednik starej: public ActionResult CheckAvailability(CheckAccomodationAvailabilityViewModel model)
+        /// </summary>
+        [HttpPost]
         public IActionResult CheckAvailability(CheckAccommodationAvailabilityViewModel model)
         {
-            // Logika sprawdzania
-            // ...
-            // Zwracamy np. partial view z wynikiem:
-            return PartialView("_CheckAvailabilityResult", model);
+            
+            try
+            {
+                // 1) Złóż tekst wiadomości (np. w oparciu o model).
+                string body =
+                    $"Zapytanie o dostępność:\n\n" +
+                    $"Data przyjazdu: {model.FromDate}\n" +
+                    $"Liczba nocy: {model.Duration}\n" +
+                    $"Dorośli: {model.NoOfAdults}\n" +
+                    $"Dzieci: {model.NoOfChildren}\n" +
+                    $"Imię gościa: {model.Name}\n" +
+                    $"Email gościa: {model.Email}\n" +
+                    $"Uwagi: {model.Notes}\n";
+
+                // 2) Zbuduj obiekt MailMessage
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("dianaliv95@gmail.com", "HotelParadise"),
+                    Subject = "Zapytanie o dostępność z formularza",
+                    Body = body,
+                    IsBodyHtml = false // lub true, jeśli chcesz HTML
+                };
+
+                // Adres, na który wysyłasz
+                mailMessage.To.Add("dianaliv95@gmail.com");
+
+                // 3) Konfiguracja SMTP
+                using (var smtpClient = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    smtpClient.Credentials = new NetworkCredential("dianaliv95@gmail.com", "keofesmtvyqiqprf");
+                    smtpClient.EnableSsl = true; // zależy od serwera
+
+                    // 4) Wyślij
+                    smtpClient.Send(mailMessage);
+                }
+
+                // 5) Po wysyłce możesz np. zwrócić partial z wynikiem
+                return View("CheckAvailabilityResult", model);
+            }
+            catch (Exception ex)
+            {
+                // Obsłuż błąd wysyłania, np. logowanie
+                Console.WriteLine(ex.Message);
+                // Możesz zwrócić inny partial z komunikatem błędu
+                return StatusCode(500, "Błąd podczas wysyłania maila: " + ex.Message);
+            }
+        }
+        [HttpGet]
+        public IActionResult CheckAvailabilityResult(CheckAccommodationAvailabilityViewModel model)
+        {
+            // tu ewentualnie pobierasz dane (z TempData albo z bazy)
+            // i zwracasz widok, np. "CheckAvailabilityResult.cshtml"
+
+            return View("CheckAvailabilityResult", model);
         }
         // Dalsze akcje, np. Details, CheckAvailability itd., analogicznie
     }

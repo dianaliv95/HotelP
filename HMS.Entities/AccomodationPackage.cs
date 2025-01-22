@@ -17,5 +17,6 @@ namespace HMS.Entities
 		public decimal FeePerNight { get; set; }
 		public virtual List<AccommodationPackagePicture> AccomodationPackagePictures { get; set; }
 
-	}
+        public virtual List<Accommodation> Accommodations { get; set; }
+    }
 }
