@@ -47,7 +47,7 @@ namespace Hotel.Areas.Dashboard.Controllers
         [HttpGet]
         public async Task<IActionResult> Action(string id)
         {
-            ModelState.Clear(); // Czyść stan modelu, aby uniknąć konfliktów walidacji
+            ModelState.Clear();
 
             var model = new UserActionModel
             {
@@ -82,8 +82,7 @@ namespace Hotel.Areas.Dashboard.Controllers
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Action(UserActionModel model)
         {
-            // Usuń AvailableRoles z walidacji, jeśli nie powinno być walidowane
-            if (string.IsNullOrEmpty(model.ID)) // Jeśli ID jest puste, usuń je z walidacji
+            if (string.IsNullOrEmpty(model.ID)) 
             {
                 ModelState.Remove(nameof(UserActionModel.ID));
             }
@@ -121,7 +120,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 return Json(new { success = false, message = "Invalid input.", errors });
             }
 
-            // Logika zapisu lub aktualizacji użytkownika
             var (success, validationErrors) = await _userService.SaveOrUpdateUserAsync(new UserDTO
             {
                 ID = model.ID,
@@ -180,7 +178,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
             catch (Exception ex)
             {
-                // Logowanie błędu (możesz użyć loggera)
                 return Json(new { success = false, message = "An unexpected error occurred.", details = ex.Message });
             }
         }

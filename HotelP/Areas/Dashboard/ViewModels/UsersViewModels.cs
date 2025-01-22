@@ -29,21 +29,21 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public string Email { get; set; }
 
         [StringLength(50, ErrorMessage = "Username cannot exceed 50 characters.")]
-        public string Username { get; set; } // Opcjonalne
+        public string Username { get; set; } 
 
         [StringLength(50, ErrorMessage = "Country cannot exceed 50 characters.")]
-        public string Country { get; set; } // Opcjonalne
+        public string Country { get; set; } 
 
         [StringLength(50, ErrorMessage = "City cannot exceed 50 characters.")]
-        public string City { get; set; } // Opcjonalne
+        public string City { get; set; }
 
         [StringLength(200, ErrorMessage = "Address cannot exceed 200 characters.")]
-        public string Address { get; set; } // Opcjonalne
+        public string Address { get; set; } 
 
         [Required(ErrorMessage = "Role is required.")]
         public string Role { get; set; }
 
-        public List<RoleDTO> AvailableRoles { get; set; } // Lista dostępnych ról
+        public List<RoleDTO> AvailableRoles { get; set; } 
     }
 
 }

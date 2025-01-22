@@ -16,7 +16,7 @@ namespace Hotel.Areas.Dashboard.Controllers
     {
         private readonly AccommodationPackagesService _AccommodationPackagesService;
         private readonly AccommodationTypesService _AccommodationTypesService;
-        private readonly DashboardService _dashboardService; // obsługa zapisu i odczytu zdjęć
+        private readonly DashboardService _dashboardService; 
 
         public AccommodationPackagesController(
             AccommodationPackagesService accommodationPackagesService,
@@ -31,7 +31,6 @@ namespace Hotel.Areas.Dashboard.Controllers
         [HttpGet]
         public IActionResult Index(string searchterm, int? AccommodationTypeID, int page = 1, int recordSize = 10)
         {
-            // Pobierz listę typów zakwaterowania (do filtra lub selecta)
             var accommodationTypes = _AccommodationTypesService.GetAllAccommodationTypes()
                 .Select(a => new AccommodationTypeViewModel
                 {
@@ -39,7 +38,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                     Name = a.Name
                 }).ToList();
 
-            // Pobierz i zmapuj pakiety
             var accommodationPackages = _AccommodationPackagesService
                 .SearchAccommodationPackages(searchterm, AccommodationTypeID, page, recordSize)
                 .Select(p => new AccommodationPackageViewModel
@@ -54,11 +52,9 @@ namespace Hotel.Areas.Dashboard.Controllers
                 })
                 .ToList();
 
-            // Stronicowanie
             int totalItems = accommodationPackages.Count();
             var pager = new Pager(totalItems, page, recordSize);
 
-            // Model do widoku
             var model = new AccommodationPackagesListingModel
             {
                 SearchTerm = searchterm,
@@ -76,7 +72,6 @@ namespace Hotel.Areas.Dashboard.Controllers
         {
             var model = new AccommodationPackageActionModel();
 
-            // Pobieramy listę typów zakwaterowania
             var accommodationTypes = _AccommodationTypesService.GetAllAccommodationTypes();
             model.AccommodationTypes = accommodationTypes.Select(a => new AccommodationTypeViewModel
             {
@@ -84,7 +79,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 Name = a.Name
             }).ToList();
 
-            // Jeśli mamy ID, to wczytujemy pakiet do edycji
             if (ID.HasValue)
             {
                 var accommodationPackage = _AccommodationPackagesService.GetAccommodationPackageByID(ID.Value);
@@ -96,9 +90,7 @@ namespace Hotel.Areas.Dashboard.Controllers
                     model.NoOfRoom = accommodationPackage.NoofRoom;
                     model.FeePerNight = accommodationPackage.FeePerNight;
 
-                    // Wczytujemy istniejące powiązane zdjęcia, jeśli są
-                    // (o ile w GetAccommodationPackageByID mamy Include(...))
-                    // Możemy je przypisać do model.AccommodationPackagePictures
+                   
                     if (accommodationPackage.AccomodationPackagePictures != null)
                     {
                         model.AccommodationPackagePictures = accommodationPackage.AccomodationPackagePictures.ToList();
@@ -106,7 +98,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 }
             }
 
-            // Zwracamy partial view z formularzem
             return PartialView("_Action", model);
         }
 
@@ -122,21 +113,17 @@ namespace Hotel.Areas.Dashboard.Controllers
             bool result;
             try
             {
-                // Czy tworzymy nowy, czy edytujemy
                 if (model.ID > 0)
                 {
-                    // EDYCJA
                     var package = _AccommodationPackagesService.GetAccommodationPackageByID(model.ID);
                     if (package == null)
                         return Json(new { success = false, message = "Nie znaleziono rekordu do edycji." });
 
-                    // Aktualizacja podstawowych pól
                     package.AccommodationTypeID = model.AccommodationTypeID;
                     package.Name = model.Name;
                     package.NoofRoom = model.NoOfRoom;
                     package.FeePerNight = model.FeePerNight;
 
-                    // Jeśli EF wczytał .AccomodationPackagePictures, to czyścimy i odtwarzamy
                     if (package.AccomodationPackagePictures == null)
                     {
                         package.AccomodationPackagePictures = new List<AccommodationPackagePicture>();
@@ -146,7 +133,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                         package.AccomodationPackagePictures.Clear();
                     }
 
-                    // Jeżeli przekazano pictureIDs, to przypisujemy
                     if (!string.IsNullOrEmpty(model.PictureIDs))
                     {
                         var splittedIds = model.PictureIDs
@@ -164,19 +150,16 @@ namespace Hotel.Areas.Dashboard.Controllers
                         }
                     }
 
-                    // Zapis w DB
                     result = _AccommodationPackagesService.UpdateAccommodationPackage(package);
                 }
                 else
                 {
-                    // NOWY
                     var package = new AccommodationPackage
                     {
                         AccommodationTypeID = model.AccommodationTypeID,
                         Name = model.Name,
                         NoofRoom = model.NoOfRoom,
                         FeePerNight = model.FeePerNight,
-                        // Inicjalizujemy pustą listę
                         AccomodationPackagePictures = new List<AccommodationPackagePicture>()
                     };
 
@@ -197,7 +180,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                         }
                     }
 
-                    // Zapis nowego w DB
                     result = _AccommodationPackagesService.SaveAccommodationPackage(package);
                 }
             }

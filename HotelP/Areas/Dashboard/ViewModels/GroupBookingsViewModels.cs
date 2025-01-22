@@ -37,14 +37,12 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public int DinnerAdults { get; set; }
         public int DinnerChildren { get; set; }
 
-        // Płatność
         public bool IsPaid { get; set; }
 
         public PaymentsMethod? PaymentMethod { get; set; }
         public GroupReservationStatus RStatus { get; set; }
 
 
-        // Dodatkowo do kalkulacji
         public decimal TotalPrice { get; set; }
 
         [Required]
@@ -53,13 +51,10 @@ namespace Hotel.Areas.Dashboard.ViewModels
         [Required]
         public string ContactEmail { get; set; } = "";
 
-        // Lista wszystkich dostępnych pokoi (checkbox)
         public List<Room> AvailableRooms { get; set; } = new();
 
-        // ID-y pokoi wybranych w formularzu
         public List<int> SelectedRoomIDs { get; set; } = new();
 
-        // Timestamp
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public List<GroupReservationStatus> AllowedGroupStatuses { get; set; }

@@ -16,7 +16,7 @@ namespace HMS.Entities
         public string Name { get; set; }
 
 
-         // Dodaj, jeśli "Description" musi mieć wartość
+         
         public string Description { get; set; }
 
     }

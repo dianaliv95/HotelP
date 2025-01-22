@@ -24,7 +24,6 @@ public class UserService
 
         var query = _userManager.Users.AsQueryable();
 
-        // Apply search filters
         if (!string.IsNullOrEmpty(searchTerm))
         {
             query = query.Where(u => u.Email.Contains(searchTerm) || u.UserName.Contains(searchTerm));
@@ -40,7 +39,6 @@ public class UserService
             }
         }
 
-        // Apply pagination
         var skip = (page - 1) * recordSize;
         var pagedUsers = await query.Skip(skip).Take(recordSize).ToListAsync();
 
@@ -94,7 +92,7 @@ public class UserService
         var errors = new List<string>();
         User user;
 
-        if (string.IsNullOrEmpty(userDto.ID)) // Tworzenie nowego użytkownika
+        if (string.IsNullOrEmpty(userDto.ID)) 
         {
             user = new User
             {
@@ -107,14 +105,14 @@ public class UserService
                 Country = userDto.Country
             };
 
-            var createResult = await _userManager.CreateAsync(user, "DefaultPassword123!"); // Dodaj hasło domyślne lub przyjmij je z formularza
+            var createResult = await _userManager.CreateAsync(user, "DefaultPassword123!"); 
             if (!createResult.Succeeded)
             {
                 errors.AddRange(createResult.Errors.Select(e => e.Description));
                 return (false, errors);
             }
         }
-        else // Aktualizacja istniejącego użytkownika
+        else 
         {
             user = await _userManager.FindByIdAsync(userDto.ID);
             if (user == null)
@@ -138,7 +136,6 @@ public class UserService
             }
         }
 
-        // Przypisanie roli użytkownikowi
         var currentRoles = await _userManager.GetRolesAsync(user);
         await _userManager.RemoveFromRolesAsync(user, currentRoles);
         var roleResult = await _userManager.AddToRoleAsync(user, userDto.Role);

@@ -6,6 +6,6 @@
         public string ReservationNumber { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        // Dodaj inne potrzebne pola
+       
     }
 }

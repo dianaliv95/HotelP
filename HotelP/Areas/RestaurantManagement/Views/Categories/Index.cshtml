@@ -38,7 +38,6 @@
                     Reset
                 </a>
 
-                <!-- Przycisk Create Category (moduł okna modalnego) -->
                 <button type="button"
                         data-href="@Url.Action("Action", "Categories", new { area = "RestaurantManagement" })"
                         class="btn btn-success create-btn"
@@ -109,16 +108,13 @@
     </div>
 </div>
 
-<!-- Modal wspólny (Create/Edit/Delete) -->
 <div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <!-- Wypełnia się dynamicznie przez AJAX (spinner, partial itp.) -->
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Obsługa przycisków Create, Edit, Delete (podobnie jak w Dishes)
         $(document).on("click", ".create-btn, .edit-btn, .delete-btn", function () {
             const url = $(this).data("href");
             $.get(url, function (data) {
@@ -129,9 +125,7 @@
             });
         });
 
-        // Obsługa zapisu i usuwania (tak samo jak w Twoim kodzie)...
-
-        // (Przykład) Zapis
+        
         $(document).on("click", "#saveButton", function (e) {
             e.preventDefault();
 
@@ -156,7 +150,6 @@
             });
         });
 
-        // (Przykład) Usunięcie
         $(document).on("click", "#deleteButton", function () {
             const id = $(this).data("id");
             $.ajax({

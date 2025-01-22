@@ -16,7 +16,6 @@ namespace HotelP.Controllers
 			_categoryService = categoryService;
 		}
 
-		// GET: /Dishes/AllCategoriesDishes
 		[HttpGet]
 		public IActionResult AllCategoriesDishes()
 		{

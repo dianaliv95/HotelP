@@ -36,9 +36,7 @@
 @section Scripts {
     <script>
         $(document).on("click", "#deleteButton", function (e) {
-            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
-
-            // Pobierz dane z formularza usuwania (tylko ID)
+            e.preventDefault(); 
             const formData = $("#deleteAccommodationPackagesForm").serialize();
 
             $.ajax({
@@ -48,8 +46,8 @@
                 success: function (result) {
                     if (result && result.success) {
                         alert("Rekord został pomyślnie usunięty!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        window.location.href = "@Url.Action("Index", "AccommodationPackages")"; // Odśwież stronę
+                        $("#actionModal").modal("hide"); 
+                        window.location.href = "@Url.Action("Index", "AccommodationPackages")"; 
                     } else {
                         alert("Błąd: " + (result.message || "Nieznany błąd."));
                     }

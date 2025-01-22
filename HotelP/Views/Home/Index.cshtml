@@ -53,10 +53,8 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-12 search-wrap">
-				<!-- Używamy GET i wskazujemy na naszą akcję w PublicBookingController -->
 				<form method="get" action="@Url.Action("SearchRooms", "PublicBooking")" class="colorlib-form">
 					<div class="row">
-						<!-- Check-in -->
 						<div class="col-md-3">
 							<div class="form-group">
 								<label for="date">Data przyjazdu:</label>
@@ -76,7 +74,6 @@
 							</div>
 						</div>
 
-						<!-- Adults -->
 						<div class="col-md-2">
 							<div class="form-group">
 								<label for="adults">Dorośli</label>
@@ -118,7 +115,7 @@
 								   value="Szukaj"
 								   class="btn btn-primary btn-block" />
 						</div>
-					</div> <!-- .row -->
+					</div> 
 				</form>
 			</div>
 		</div>
@@ -174,7 +171,6 @@
 {
 	<div id="colorlib-rooms" class="colorlib-light-grey">
 		<div class="container">
-			<!-- (1) NAGŁÓWEK i PRZYCISKI DO WYBORU TYPU - WYWYŚWIETLANY TYLKO RAZ -->
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3 text-center colorlib-heading animate-box">
 					<span>
@@ -196,7 +192,6 @@
 				</div>
 			</div>
 
-			<!-- (2) PĘTLA PO TYPACH: generujemy jedną sekcję .accommodationTypesRow NA KAŻDY TYP -->
 			@{
 				var i = 0; // steruje tym, że pierwszy typ jest widoczny, reszta np. ukryta
 			}
@@ -212,14 +207,12 @@
 							@foreach (var package in Model.AccommodationPackages
 												.Where(p => p.AccommodationTypeID == type.ID))
 							{
-								// Dla każdego package ustalamy miniaturę
 								var thumbnail = package.AccomodationPackagePictures
 								?.FirstOrDefault()?.Picture?.URL
 								?? "default-image.jpg";
 
 								<div class="item">
-									<!-- Link do szczegółów pakietu:
-										 nazwa i cena (FeePerNight) -->
+									
 									<a href="@Url.Action("DetailsPackage", "Accomodations",
                                         new { accomodationPackageID = package.ID })"
 									   class="room image-popup-link"
@@ -254,7 +247,6 @@
 					</div>
 				</div>
 
-				// Na koniec pętli zwiększamy 'i'
 				i++;
 			}
 		</div>
@@ -274,16 +266,12 @@
 		<div class="row">
 			<div class="diningbar-flex">
 
-				<!-- Lewa połówka z zakładkami -->
 				<div class="half animate-box">
-					<!-- Tworzymy dynamiczną listę zakładek w <ul> -->
 					<ul class="nav nav-tabs text-center" role="tablist">
 
-						@* Iterujemy po kategoriach – i-th kategoria = i-ta zakładka *@
 						@for (int i = 0; i < Model.DishCategories.Count; i++)
 						{
 							var cat = Model.DishCategories[i];
-							// Pierwsza zakładka "active"
 							var liClass = i == 0 ? "active" : "";
 							var hrefId = $"tab-cat-{cat.ID}";
 
@@ -298,7 +286,6 @@
 						}
 					</ul>
 
-					<!-- Treść zakładek -->
 					<div class="tab-content">
 						@for (int i = 0; i < Model.DishCategories.Count; i++)
 						{
@@ -306,7 +293,6 @@
 							var divClass = i == 0 ? "tab-pane active" : "tab-pane";
 							var divId = $"tab-cat-{cat.ID}";
 
-							// Wybrane dania z danej kategorii:
 							var catDishes = Model.AllDishes
 							.Where(d => d.CategoryID == cat.ID)
 							.ToList();
@@ -351,8 +337,7 @@
 							</div>
 						}
 					</div>
-				</div> <!-- end half -->
-				<!-- Prawa połówka: np. zdjęcie w tle -->
+				</div> 
 				<div class="half diningbar-img"
 					 style="background-image: url('/images/cover_img_1.jpg');">
 				</div>

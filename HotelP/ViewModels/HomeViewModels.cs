@@ -8,7 +8,6 @@ namespace Hotel.ViewModels
         public IEnumerable<AccommodationPackage> AccommodationPackages { get; set; }
         public List<Category> DishCategories { get; set; } = new();
 
-        // Wszystkie dania (lub wczytane filtrowane) - do dopasowania w widoku
         public List<Dish> AllDishes { get; set; } = new();
     }
 }

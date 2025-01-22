@@ -1,6 +1,5 @@
 ﻿@model IEnumerable<HMS.Entities.Accommodation>
 
-<!-- Sekcja "hero" na górze (jak w snippet) -->
 <aside id="colorlib-hero">
     <div class="flexslider">
         <ul class="slides">
@@ -21,7 +20,6 @@
     </div>
 </aside>
 
-<!-- Główna sekcja z listą pokoi -->
 <div id="colorlib-rooms" class="colorlib-light-grey">
     <div class="container">
         <div class="row">
@@ -29,18 +27,15 @@
             {
                 @foreach (var accommodation in Model)
                 {
-                    // Pobierz link do zdjęcia (np. z relacji AccommodationPictures)
                     var backgroundImage = GetAccommodationPicture(accommodation);
 
                     <div class="col-md-4 room-wrap animate-box">
-                        <!-- Tło w <a> – styl Colorlib -->
                         <a href="@backgroundImage"
                            class="room image-popup-link"
                            style="background-image: url('@backgroundImage');">
                         </a>
 
                         <div class="desc text-center">
-                            <!-- Gwiazdki, np. 3/5 -->
                             <span class="rate-star">
                                 <i class="icon-star-full full"></i>
                                 <i class="icon-star-full full"></i>
@@ -49,32 +44,26 @@
                                 <i class="icon-star-full"></i>
                             </span>
 
-                            <!-- Nazwa zakwaterowania -->
                             <h3>
                                 @accommodation.Name
                             </h3>
 
-                            <!-- Cena (jeżeli chcesz z pakietu) -->
                             <p class="price">
                                 <span class="currency">zł</span>
                                 <span class="price-room">
                                     @accommodation.AccommodationPackage?.FeePerNight.ToString("F2")
-                                    <!-- lub .ToString("C") -->
                                 </span>
-                                <span class="per">/ per night</span>
+                                <span class="per">/ za dobę</span>
                             </p>
 
                             <ul>
                                 <li>
-                                    @* Liczba pokoi etc. Jeżeli chcesz:
-                            e.g. "No. of Rooms: 10" *@
+                                    
                                     <i class="icon-check"></i>
                                     Rooms: @accommodation.AccommodationPackage?.NoofRoom
                                 </li>
-                                <!-- Dopisz tutaj, co chcesz w li... -->
                             </ul>
 
-                            <!-- Przycisk Book now/ Szczegóły -->
                             <p>
                                 <a class="btn btn-primary btn-book"
                                    href="@Url.Action("DetailsAccommodation", "Accomodations",
@@ -84,7 +73,7 @@
 
                             </p>
                         </div>
-                    </div> <!-- .col-md-4 -->
+                    </div>
                 }
             }
             else
@@ -100,18 +89,14 @@
 </div>
 
 @functions {
-    // Funkcja pobierająca URL pierwszego zdjęcia:
     private string GetAccommodationPicture(HMS.Entities.Accommodation accommodation)
     {
-        // Jeśli w encji jest kolekcja "AccommodationPictures":
         var firstPic = accommodation?.AccommodationPictures?.FirstOrDefault();
         if (firstPic?.Picture != null)
         {
-            // Ścieżkę dopasuj do swojego folderu:
             return "/images/site/" + firstPic.Picture.URL;
         }
 
-        // Zwróć coś domyślnego
         return "/images/room-1.jpg";
     }
 }

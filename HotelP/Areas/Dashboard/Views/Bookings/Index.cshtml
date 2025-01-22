@@ -66,7 +66,6 @@
                         <td>@booking.DateTo.ToString("dd.MM.yyyy")</td>
                         <td>
                             @{
-                                // Po prostu do wyświetlenia:
                                 int duration = (booking.DateTo - booking.DateFrom).Days;
                                 if (duration < 0) duration = 0;
                             }
@@ -74,9 +73,7 @@
                         </td>
                         <td>
                             @{
-                                // Tu wyświetlasz, ilu dorosłych/dzieci zamówiło posiłki:
-                                // przykładowo:
-                                // "Śniadanie: 2 os." itp.
+                               
                                 bool hasBreakfast = (booking.BreakfastAdults + booking.BreakfastChildren) > 0;
                                 bool hasLunch = (booking.LunchAdults + booking.LunchChildren) > 0;
                                 bool hasDinner = (booking.DinnerAdults + booking.DinnerChildren) > 0;
@@ -142,7 +139,6 @@
                             }
                         </td>
                         <td>
-                            <!-- Przykładowe przyciski Edytuj/Usuń -->
                             <button data-href="@Url.Action("CreateOrEdit", "Bookings", new { id = booking.ID, area = "Dashboard" })"
                                     class="btn btn-primary btn-sm edit-btn"
                                     data-bs-toggle="modal"
@@ -172,7 +168,7 @@
 <div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <!-- Treść modala będzie ładowana dynamicznie -->
+           
         </div>
     </div>
 </div>
@@ -181,7 +177,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <!-- Treść modala będzie ładowana dynamicznie -->
+          
         </div>
     </div>
 </div>
@@ -191,9 +187,7 @@
     <script>
         $(document).ready(function () {
 
-            /**
-             * Funkcja do ładowania partiala (np. formularza w modalu) przez AJAX.
-             */
+           
             function loadModal(url, modalSelector) {
                 console.log(`Loading modal from URL: ${url}`);
                 $.ajax({
@@ -204,7 +198,6 @@
                         $(modalSelector).find('.modal-content').html(html);
                         $(modalSelector).modal('show');
 
-                        // Po załadowaniu do #actionModal – inicjuj formularz
                         if (modalSelector === '#actionModal') {
                             initializeBookingForm();
                         }
@@ -216,16 +209,12 @@
                 });
             }
 
-            /**
-             * Inicjuje logikę formularza: ustawianie max dorosłych/dzieci,
-             * liczenie ceny na podstawie inputów itp.
-             */
+           
             function initializeBookingForm() {
                 const roomSelect = $("#roomSelect");
                 const fromDateInput = $("input[name='FromDate']");
                 const toDateInput = $("input[name='DateTo']");
 
-                // Pola liczby dorosłych/dzieci (input type="number")
                 const adultCountInput = $("input[name='AdultCount']");
                 const childrenCountInput = $("input[name='ChildrenCount']");
 
@@ -240,24 +229,19 @@
                 // Pole łącznej kwoty
                 const totalPriceInput = $("#totalPrice");
 
-                /**
-                 * Ustawia w inputach AdultCount / ChildrenCount atrybut max=
-                 * na podstawie data-maxadults / data-maxchildren z opcji.
-                 */
+                
                 function updateMaxGuests() {
                     const selectedOption = $("#roomSelect").find("option:selected");
                     const maxAdults = parseInt(selectedOption.data("maxadults") || 1, 10);
                     const maxChildren = parseInt(selectedOption.data("maxchildren") || 1, 10);
 
-                    // Generowanie <option> w <select> #adultCountSelect (od 1 do maxAdults)
                     let adultCountHtml = "";
                     for (let i = 1; i <= maxAdults; i++) {
                         adultCountHtml += `<option value="${i}">${i}</option>`;
                     }
                     $("#adultCountSelect").html(adultCountHtml);
 
-                    // Generowanie <option> w <select> #childrenCountSelect (od 0 do maxChildren)
-                    // jeśli np. dopuszczasz 0 dzieci, to pętla może zaczynać się od 0
+                    
                     let childrenCountHtml = "";
                     for (let i = 0; i <= maxChildren; i++) {
                         childrenCountHtml += `<option value="${i}">${i}</option>`;
@@ -266,10 +250,7 @@
                 }
 
 
-                /**
-                 * Oblicza całkowitą cenę = (cena pokoju * noce) + posiłki.
-                 * Wartości stawek (20,25,30) dopasuj do BookingService.
-                 */
+              
                 function calculateTotalPrice() {
                     const roomId = roomSelect.val();
                     const fromDate = new Date(fromDateInput.val());
@@ -379,7 +360,6 @@
                             location.reload();
                         } else {
                             console.log('Validation errors:', result);
-                            // Gdy serwer zwraca partial (HTML) z walidacją – podmieniamy
                             $('#actionModal .modal-content').html(result);
                         }
                     },
@@ -421,8 +401,7 @@
                 });
             });
 
-            // (Opcjonalnie) Zmiana zakwaterowania, jeśli używasz #accommodationSelect
-            // i pobierasz pokoje dynamicznie
+            
             $(document).on('change', '#accommodationSelect', function () {
                 const accommodationId = $(this).val();
                 const fromDate = $('#fromDateInput').val();
@@ -444,8 +423,7 @@
                             if (data && data.length > 0) {
                                 roomSelect.append('<option value="">-- Wybierz Pokój --</option>');
                                 data.forEach(function (room) {
-                                    // Musisz sam dodać data-maxadults, data-maxchildren jeśli chcesz
-                                    // np. roomSelect.append( ... data-maxadults="${room.MaxAdults}" ...)
+                                  
                                     roomSelect.append(
                                         `<option value="${room.ID}" data-price="${room.PricePerNight}">
                                                              ${room.Name}
@@ -467,7 +445,6 @@
                 }
             });
 
-            // Walidacja czy wybrano pokój
             $(document).on('submit', '#bookingForm', function (e) {
                 const roomId = $('#roomSelect').val();
                 if (!roomId) {

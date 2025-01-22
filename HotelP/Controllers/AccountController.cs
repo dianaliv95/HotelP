@@ -19,14 +19,12 @@ namespace Hotel.Controllers
             _signInManager = signInManager;
         }
 
-        // GET: Account/Register
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
 
-        // POST: Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -57,7 +55,6 @@ namespace Hotel.Controllers
             return View(model);
         }
 
-        // GET: Account/Login
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
@@ -72,7 +69,6 @@ namespace Hotel.Controllers
             return View();
         }
 
-        // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
@@ -87,14 +83,10 @@ namespace Hotel.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Zamiast na stałe:
-                    // return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
-
-                    // 1) Jeśli nie ma returnUrl, to użyj "/Dashboard" jako fallback
+                    
                     returnUrl ??= "/Dashboard";
 
-                    // 2) Bezpieczne przekierowanie
-                    // (LocalRedirect) - upewnia się, że nie przekierowujemy poza nasz host
+                   
                     return LocalRedirect(returnUrl);
                 }
                 else if (result.IsLockedOut)
@@ -107,13 +99,11 @@ namespace Hotel.Controllers
                 }
             }
 
-            // Jeśli błąd – wracamy do widoku logowania
-            // Nie zapomnij przekazać returnUrl (żeby zostało w polu hidden w formularzu)
+            
             ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
 
-        // POST: Account/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()

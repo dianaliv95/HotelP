@@ -90,21 +90,5 @@ namespace HMS.Services
             }
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

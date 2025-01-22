@@ -13,7 +13,6 @@
 
 <div class="row mb-3">
     <div class="col-lg-12">
-        <!-- Formularz Wyszukiwania -->
         <form method="get" asp-action="Index">
             <div class="input-group">
                 <input type="text" name="searchterm" class="form-control" placeholder="Search." value="@Model.SearchTerm" />
@@ -23,7 +22,6 @@
                 <a href="@Url.Action("Index", "AccommodationTypes")" class="btn btn-outline-secondary">
                     <i class="fa-solid fa-rotate-right mr-1"></i> Reset
                 </a>
-                <!-- Przycisk Create z unikalną klasą -->
                 <button data-href="@Url.Action("Action", "AccommodationTypes")"
                         id="createButton"
                         class="create-btn btn btn-outline-success"
@@ -43,7 +41,6 @@
     </div>
 </div>
 
-<!-- Modal -->
 <div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
     </div>
@@ -80,19 +77,19 @@
 
         // Skrypt dla przycisku "Save" w Create/Edit
         $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+            e.preventDefault();
 
-            const formData = $("#createAccommodationTypeForm").serialize(); // Serializacja danych formularza
+            const formData = $("#createAccommodationTypeForm").serialize();
 
             $.ajax({
-                url: '@Url.Action("Action", "AccommodationTypes")', // Adres akcji kontrolera
+                url: '@Url.Action("Action", "AccommodationTypes")', 
                 type: 'POST',
                 data: formData,
                 success: function (result) {
                     if (result && result.success) {
                         alert("Dane zostały zapisane pomyślnie!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
+                        $("#actionModal").modal("hide"); 
+                        location.reload(); 
                     } else {
                         $(".errorDiv").html(result.message || "Wystąpił nieznany błąd.");
                         alert("Błąd: " + (result.message || "Nieznany błąd."));
@@ -107,21 +104,20 @@
             });
         });
 
-        // Skrypt dla przycisku "Delete" w Delete modal
         $(document).on("click", "#deleteButton", function (e) {
-            e.preventDefault(); // Zapobiega domyślnemu zachowaniu przycisku
+            e.preventDefault(); 
 
-            const formData = $("#deleteAccommodationTypeForm").serialize(); // Serializacja danych formularza
+            const formData = $("#deleteAccommodationTypeForm").serialize(); 
 
             $.ajax({
-                url: '@Url.Action("Delete", "AccommodationTypes")', // Adres akcji kontrolera
+                url: '@Url.Action("Delete", "AccommodationTypes")', 
                 type: 'POST',
                 data: formData,
                 success: function (result) {
                     if (result && result.success) {
                         alert("Rekord został pomyślnie usunięty!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
+                        $("#actionModal").modal("hide"); 
+                        location.reload(); 
                     } else {
                         alert("Błąd: " + (result.message || "Nieznany błąd."));
                     }

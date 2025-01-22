@@ -26,9 +26,7 @@ public class GroupBookingService
 		_roomService = roomService;
 	}
 
-	/// <summary>
-	/// Pobiera wszystkie rezerwacje grupowe (bez auto-zwalniania).
-	/// </summary>
+	
 	public async Task<List<GroupReservation>> GetAllAsync()
 	{
 		return await _context.GroupReservations
@@ -37,9 +35,6 @@ public class GroupBookingService
 			.ToListAsync();
 	}
 
-	/// <summary>
-	/// Pobiera jedną rezerwację grupową (bez auto-zwalniania).
-	/// </summary>
 	public async Task<GroupReservation> GetByIdAsync(int id)
 	{
 		return await _context.GroupReservations
@@ -48,24 +43,20 @@ public class GroupBookingService
 			.FirstOrDefaultAsync(gr => gr.ID == id);
 	}
 
-	/// <summary>
-	/// Tworzy nową rezerwację grupową, sprawdza dostępność pokoi (kolizje) 
-	/// (zamiast ustawiać Room.Status).
-	/// </summary>
+	
 	public async Task<bool> CreateAsync(GroupReservation groupRes, List<int> roomIDs)
 	{
 		using var trans = await _context.Database.BeginTransactionAsync();
 		try
 		{
-			// 1) Sprawdzenie kolizji dla każdego pokoju
 			foreach (var rid in roomIDs)
 			{
 				bool free = await _roomService.IsRoomAvailableAsync(
 					rid,
 					groupRes.FromDate,
 					groupRes.ToDate,
-					null,           // excludeSingleResId
-					null            // excludeGroupResId
+					null,           
+					null          
 				);
 				if (!free)
 				{
@@ -76,11 +67,9 @@ public class GroupBookingService
 				}
 			}
 
-			// 2) Dodajemy rezerwację grupową
 			_context.GroupReservations.Add(groupRes);
 			await _context.SaveChangesAsync();
 
-			// 3) Tworzymy powiązania GroupReservationRoom
 			foreach (var rid in roomIDs)
 			{
 				var grr = new GroupReservationRoom
@@ -104,9 +93,7 @@ public class GroupBookingService
 		}
 	}
 
-	/// <summary>
-	/// Edycja rezerwacji grupowej (pomijam statusy Room.Status)
-	/// </summary>
+	
 	public async Task<bool> UpdateAsync(GroupReservation updated, List<int> newRoomIDs)
 	{
 		using var trans = await _context.Database.BeginTransactionAsync();
@@ -195,9 +182,7 @@ public class GroupBookingService
 		}
 	}
 
-	/// <summary>
-	/// Usuwanie rezerwacji grupowej (nie manipulujemy Room.Status)
-	/// </summary>
+	
 	public async Task<bool> DeleteAsync(int groupReservationId)
 	{
 		using var trans = await _context.Database.BeginTransactionAsync();
@@ -226,9 +211,7 @@ public class GroupBookingService
 		}
 	}
 
-	/// <summary>
-	/// Oblicza łączną cenę (pokój * noce) + posiłki
-	/// </summary>
+	
 	public decimal CalculateTotalPrice(GroupReservation groupRes)
 	{
 		if (groupRes == null)
@@ -239,7 +222,7 @@ public class GroupBookingService
 
 		decimal total = 0m;
 
-		// Cena pokoi
+		
 		if (groupRes.GroupReservationRooms != null)
 		{
 			foreach (var grr in groupRes.GroupReservationRooms)
@@ -252,7 +235,7 @@ public class GroupBookingService
 			}
 		}
 
-		// Posiłki
+		
 		const decimal PRICE_BREAKFAST = 20m;
 		const decimal PRICE_LUNCH = 25m;
 		const decimal PRICE_DINNER = 30m;
@@ -264,9 +247,7 @@ public class GroupBookingService
 		return total;
 	}
 
-	/// <summary>
-	/// Przykładowy "backtracking" – w tym wypadku tylko filtr MaxGuests.
-	/// </summary>
+	
 	public List<Room> FindMinRoomsForGuestsBacktracking(List<Room> candidateRooms, int totalGuests)
 	{
 		return candidateRooms

@@ -4,7 +4,6 @@
     <h2>Lista Pokoi</h2>
     <hr />
 
-    <!-- (A) Formularz filtrowania / nawigacji po datach -->
     <form id="filterForm" method="get"
           action="@Url.Action("Index", "RoomsList", new { area = "Dashboard" })"
           class="row g-3 mb-3">
@@ -28,7 +27,6 @@
         </div>
 
         <div class="col-auto">
-            <!-- Filtr statusu -->
             <select class="form-select" name="status">
                 <option value="">-- Wybierz status --</option>
                 <option value="Available" @(Model.SelectedStatus == "Available" ? "selected" : "")>Dostępny</option>
@@ -38,14 +36,12 @@
         </div>
 
         <div class="col-auto">
-            <!-- Przyciski strzałek i Filtruj -->
             <button type="button" class="btn btn-outline-secondary" id="btnPrevDay">«</button>
             <button type="button" class="btn btn-outline-secondary" id="btnNextDay">»</button>
             <button type="submit" class="btn btn-primary">Filtruj</button>
         </div>
     </form>
 
-    <!-- (B) Tabela z pokojami -->
     <table class="table table-striped">
         <thead>
             <tr>
@@ -84,7 +80,6 @@
                         <td>@room.Accommodation?.MaxAdults / @room.Accommodation?.MaxChildren</td>
                         <td>@room.PricePerNight.ToString("C")</td>
                         <td>
-                            <!-- Przycisk "Rezerwuj" -->
                             <button class="btn btn-sm btn-success create-res-btn"
                                     data-room-id="@room.ID"
                                     data-bs-toggle="modal"
@@ -92,7 +87,6 @@
                                 Rezerwuj
                             </button>
 
-                            <!-- Przycisk "Zablokuj w dacie" -->
                             <button class="btn btn-sm btn-warning block-modal-btn"
                                     data-room-id="@room.ID"
                                     data-room-name="@room.Name"
@@ -101,7 +95,6 @@
                                 Zablokuj w dacie
                             </button>
 
-                            <!-- Przycisk "Odblokuj" -->
                             <button class="btn btn-sm btn-light unblock-room-btn"
                                     data-room-id="@room.ID">
                                 Odblokuj
@@ -120,16 +113,13 @@
     </table>
 </div>
 
-<!-- (C) Modal do rezerwacji (ładowany AJAX-owo) -->
 <div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content" id="reservationModalContent">
-            <!-- Partial wczytywany przez AJAX (RoomsList/CreateReservation GET) -->
         </div>
     </div>
 </div>
 
-<!-- (D) Modal do blokowania pokoju w konkretnym zakresie -->
 <div class="modal fade" id="blockRoomModal" tabindex="-1" aria-labelledby="blockRoomModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -174,38 +164,32 @@
     <script>
         $(document).ready(function () {
 
-            // Funkcja licząca różnicę w dniach:
             function getDateDiffInDays(d1, d2) {
                 const timeDiff = d2.getTime() - d1.getTime();
                 return Math.round(timeDiff / (1000 * 60 * 60 * 24));
             }
 
-            // (1) STRZAŁKA W LEWO
             $("#btnPrevDay").on("click", function () {
                 let fromVal = $("#dateFrom").val() || null;
                 let toVal = $("#dateTo").val() || null;
 
-                // Jeśli brak, ustawiamy "dzisiaj" i "dzisiaj+1"
                 let fromDate = fromVal ? new Date(fromVal) : new Date();
                 let toDate = toVal ? new Date(toVal) : new Date(fromDate.getTime() + 86400000);
 
-                // Różnica dni
                 let diffDays = getDateDiffInDays(fromDate, toDate);
-                if (diffDays < 1) diffDays = 1; // minimalnie 1 dzień
+                if (diffDays < 1) diffDays = 1; 
 
-                // Cofamy obie daty o 1 dzień
+
                 fromDate.setDate(fromDate.getDate() - 1);
                 toDate = new Date(fromDate.getTime());
                 toDate.setDate(toDate.getDate() + diffDays);
 
-                // Ustawiamy
                 $("#dateFrom").val(fromDate.toISOString().substring(0, 10));
                 $("#dateTo").val(toDate.toISOString().substring(0, 10));
 
                 $("#filterForm").submit();
             });
 
-            // (2) STRZAŁKA W PRAWO
             $("#btnNextDay").on("click", function () {
                 let fromVal = $("#dateFrom").val() || null;
                 let toVal = $("#dateTo").val() || null;
@@ -216,7 +200,6 @@
                 let diffDays = getDateDiffInDays(fromDate, toDate);
                 if (diffDays < 1) diffDays = 1;
 
-                // Przesuwamy do przodu
                 fromDate.setDate(fromDate.getDate() + 1);
                 toDate = new Date(fromDate.getTime());
                 toDate.setDate(toDate.getDate() + diffDays);
@@ -228,7 +211,6 @@
             });
 
 
-            // (3) Rezerwacja (modal)
             $(".create-res-btn").click(function () {
                 var roomId = $(this).data("room-id");
 
@@ -246,7 +228,6 @@
                 });
             });
 
-            // obsługa POST rezerwacji
             $(document).on("submit", "#reservationForm", function (e) {
                 e.preventDefault();
                 var formData = $(this).serialize();
@@ -271,16 +252,13 @@
             });
 
 
-            // (4) Blokowanie w dacie
             $(".block-modal-btn").click(function () {
                 var roomId = $(this).data("room-id");
                 var roomName = $(this).data("room-name");
 
-                // Wypełniamy pola w modalu:
                 $("#blockRoomId").val(roomId);
                 $("#blockRoomName").val(roomName);
 
-                // Domyślne daty: dzisiaj + jutro
                 let today = new Date();
                 let tomorrow = new Date(today.getTime() + 86400000);
                 $("#blockFrom").val(today.toISOString().substring(0, 10));
@@ -320,7 +298,6 @@
                 });
             });
 
-            // (5) Odblokuj
             $(".unblock-room-btn").click(function () {
                 var roomId = $(this).data("room-id");
 

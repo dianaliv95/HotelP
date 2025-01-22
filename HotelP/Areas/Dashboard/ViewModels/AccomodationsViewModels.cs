@@ -10,7 +10,7 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public List<Accommodation> Accommodations { get; set; }
         public string SearchTerm { get; set; }
         public int? SelectedPackageId { get; set; }
-        public int? AccommodationPackageID { get; set; } // Dodane pole
+        public int? AccommodationPackageID { get; set; } 
         public List<AccommodationPackage> Packages { get; set; }
     }
 

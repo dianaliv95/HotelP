@@ -9,6 +9,6 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public List<Room> Rooms { get; set; } = new List<Room>();
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
-        public string SelectedStatus { get; set; } // Available / Blocked / Reserved
+        public string SelectedStatus { get; set; } 
     }
 }

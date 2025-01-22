@@ -21,7 +21,6 @@ namespace HMS.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // --- (1) Dodawanie nowego pokoju ---
         public async Task<bool> AddRoomAsync(Room room)
         {
             if (room == null) throw new ArgumentNullException(nameof(room));
@@ -40,7 +39,6 @@ namespace HMS.Services
             }
         }
 
-        // --- (2) Ogólne pobranie wszystkich pokoi ---
         public async Task<List<Room>> GetAllRoomsAsync()
         {
             try
@@ -57,7 +55,6 @@ namespace HMS.Services
             }
         }
 
-        // --- (3) Pobranie 1 pokoju po ID ---
         public async Task<Room> GetRoomByIdAsync(int id)
         {
             try
@@ -73,7 +70,6 @@ namespace HMS.Services
             }
         }
 
-        // --- (4) IsRoomAvailableAsync – sprawdza (a) blokadę, (b) rezerwacje ---
         public async Task<bool> IsRoomAvailableAsync(
             int roomId,
             DateTime fromDate,
@@ -81,7 +77,6 @@ namespace HMS.Services
             int? excludeSingleResId = null,
             int? excludeGroupResId = null)
         {
-            // 1) Czy taki pokój istnieje?
             var room = await _context.Rooms.FindAsync(roomId);
             if (room == null)
             {
@@ -89,8 +84,7 @@ namespace HMS.Services
                 return false;
             }
 
-            // 2) Sprawdź blokadę zakresową (BlockedFrom–BlockedTo).
-            //    Kolizja => (room.BlockedFrom < toDate) && (room.BlockedTo > fromDate)
+           
             if (room.BlockedFrom != null && room.BlockedTo != null)
             {
                 bool overlap = room.BlockedFrom.Value < toDate
@@ -106,7 +100,6 @@ namespace HMS.Services
                 }
             }
 
-            // 3) Sprawdź rezerwacje pojedyncze
             bool collisionSingle = await _context.Reservations
                 .Where(r => r.ID != (excludeSingleResId ?? 0))
                 .Where(r => r.RoomID == roomId)
@@ -116,11 +109,9 @@ namespace HMS.Services
                 );
             if (collisionSingle)
             {
-                // Kolizja z rezerwacją pojedynczą
                 return false;
             }
 
-            // 4) Sprawdź rezerwacje grupowe
             bool collisionGroup = await _context.GroupReservations
                 .Where(gr => gr.ID != (excludeGroupResId ?? 0))
                 .Where(gr => gr.FromDate < toDate && gr.ToDate > fromDate)
@@ -130,11 +121,9 @@ namespace HMS.Services
                 return false;
             }
 
-            // 5) Brak kolizji + brak blokady => OK
             return true;
         }
 
-        // --- (5) Zmienianie statusu, AvailableFrom/To (opcjonalnie) ---
         public async Task<bool> UpdateRoomStatusAsync(int roomId, string status, DateTime? availableFrom = null, DateTime? availableTo = null)
         {
             try
@@ -163,7 +152,6 @@ namespace HMS.Services
             }
         }
 
-        // (Pomocnicza) Całościowe update dowolnych pól w Room
         public async Task<bool> UpdateRoomAsync(Room updatedRoom)
         {
             try
@@ -180,7 +168,6 @@ namespace HMS.Services
             }
         }
 
-        // Dalsze przykładowe metody:
         public async Task<bool> MarkRoomAsReservedAsync(int roomId)
         {
             return await UpdateRoomStatusAsync(roomId, "Reserved");
@@ -190,7 +177,6 @@ namespace HMS.Services
             return await UpdateRoomStatusAsync(roomId, "Available");
         }
 
-        // (6) Usuwanie pokoju
         public async Task<bool> DeleteRoomAsync(int roomId)
         {
             try
@@ -205,7 +191,6 @@ namespace HMS.Services
                     return false;
                 }
 
-                // Sprawdź, czy pokój nie ma powiązanych rezerwacji aktywnych
                 if (room.Reservations != null && room.Reservations.Any())
                 {
                     _logger.LogWarning("Nie można usunąć pokoju ID={0}, ma powiązane rezerwacje.", roomId);
@@ -232,13 +217,11 @@ namespace HMS.Services
 
                 if (!string.IsNullOrEmpty(status))
                 {
-                    // Jeżeli ktoś podał status, to filtruj tylko po nim
                     query = query.Where(r => r.Status == status);
                 }
                 else
                 {
-                    // Jeżeli nie podano statusu, to używamy wbudowanej logiki
-                    // dozwolonych statusów
+                   
                     query = query.Where(r =>
                         r.Status == "Available" ||
                         r.Status == "Completed" ||
@@ -258,9 +241,7 @@ namespace HMS.Services
         }
 
 
-        // (7) Przykład getAvailableRoomsAsync – tu nie analizuje BlockedFrom/To
-        // bo i tak w IsRoomAvailableAsync uwzględnisz to wewnętrznie.
-        // (Możesz dodać analogicznie w pętli i sprawdzić.)
+        
         public async Task<List<Room>> GetAvailableRoomsAsync(int accommodationId, DateTime fromDate, DateTime toDate)
         {
             var rooms = await _context.Rooms

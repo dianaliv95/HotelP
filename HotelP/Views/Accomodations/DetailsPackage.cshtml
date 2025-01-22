@@ -12,7 +12,6 @@
     var noOfRoom = package?.NoofRoom ?? 0;
 }
 
-<!-- HERO z miniaturą pakietu -->
 <aside id="colorlib-hero">
     <div class="flexslider">
         <ul class="slides">
@@ -34,7 +33,6 @@
 </aside>
 
 
-<!-- Sekcja "amenities" -->
 <div id="colorlib-amenities">
     <div class="container">
         <div class="row">
@@ -48,7 +46,6 @@
                     <strong>Rooms: @noOfRoom</strong>
                 </div>
 
-                <!-- Główne zdjęcie pakietu -->
                 <div class="amenities-img animate-box"
                      style="height:400px; background-image: url('/images/site/@thumbnailURL');">
                 </div>
@@ -69,7 +66,6 @@
     </div>
 </div>
 
-<!-- Karuzela z listą Accommodations -->
 @if (package?.Accommodations != null && package.Accommodations.Any())
 {
     <div class="container" style="margin-top:20px;">
@@ -79,7 +75,6 @@
                     @foreach (var accom in package.Accommodations)
                     {
                         <div class="item">
-                            <!-- Tło w <a> – zdjęcie z pakietu (lub z accom, jak wolisz) -->
                             <a href="@Url.Action("DetailsAccommodation", "Accomodations", new { id = accom.ID })"
                                class="room image-popup-link"
                                style="background-image:url('/images/site/@thumbnailURL');">
@@ -126,7 +121,6 @@ else
 }
 
 
-<!-- FORMULARZ check availability (AJAX) -->
 <div id="colorlib-contact" style="margin-top:40px;">
     <div class="container">
         <div class="row">
@@ -134,7 +128,6 @@ else
                 <h3>Skontaktuj się z nami</h3>
             </div>
             <div class="col-md-10 col-md-offset-1 animate-box">
-                <!-- Jedyny <form>, z type="button" + AJAX -->
                 <form method="post" action="@Url.Action("CheckAvailability", "Accomodations")">
                     <div class="row form-group">
                         <div class="col-md-6">
@@ -194,13 +187,11 @@ else
 
 @section Scripts {
     <script>
-        // Inicjalizacja datepickera
         $('#FromDate').datepicker({
             format: 'mm/dd/yyyy',
             startDate: '+3d'
         });
 
-        // Obsługa kliknięcia "Sprawdź dostępność" w AJAX
        
 
     </script>

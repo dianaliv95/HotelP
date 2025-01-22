@@ -21,7 +21,6 @@
           action="@Url.Action("CreateOrEdit", "Bookings", new { area = "Dashboard" })">
         @Html.AntiForgeryToken()
 
-        <!-- Wybór pokoju -->
         <div class="mb-3">
             <label for="roomSelect" class="form-label">Pokój</label>
             <select class="form-select" id="roomSelect" name="RoomID" required>
@@ -43,7 +42,6 @@
             <div class="invalid-feedback">Proszę wybrać pokój.</div>
         </div>
 
-        <!-- Jeżeli chcesz wyświetlić pokój "przypisany" -->
         @if (Model.Room != null)
         {
             <div class="mb-3">
@@ -54,11 +52,9 @@
         }
         else if (Model.AvailableRooms != null && Model.AvailableRooms.Any())
         {
-            <!-- Ewentualnie drugi select,
-                 ale prawdopodobnie wystarczy ten wyżej -->
+           
         }
 
-        <!-- Imię, Nazwisko -->
         <div class="mb-3">
             <label for="firstNameInput" class="form-label">Imię</label>
             <input type="text" class="form-control"
@@ -79,7 +75,6 @@
             <div class="invalid-feedback">Proszę wprowadzić nazwisko.</div>
         </div>
 
-        <!-- Daty pobytu -->
         <div class="mb-3">
             <label for="fromDateInput" class="form-label">Data Rozpoczęcia</label>
             <input type="date" class="form-control"
@@ -98,7 +93,6 @@
             <div class="invalid-feedback">Proszę wybrać datę zakończenia.</div>
         </div>
 
-        <!-- Czas trwania (opcjonalnie, jeśli Duration istnieje w modelu) -->
         <div class="mb-3">
             <label for="durationInput" class="form-label">Czas Trwania (dni)</label>
             <input type="number" class="form-control"
@@ -110,7 +104,6 @@
             <div class="invalid-feedback">Proszę wprowadzić poprawny czas trwania.</div>
         </div>
 
-        <!-- Liczba osób (dorosłych / dzieci) -->
         <div class="mb-3 row">
             <div class="col">
                 <label class="form-label">Dorośli</label>
@@ -130,7 +123,6 @@
             </div>
         </div>
 
-        <!-- Sekcja: posiłki (zamiast booli – liczba dorosłych/dzieci) -->
         <h5>Śniadanie</h5>
         <div class="row mb-3">
             <div class="col">

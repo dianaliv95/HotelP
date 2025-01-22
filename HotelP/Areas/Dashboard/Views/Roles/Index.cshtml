@@ -36,7 +36,6 @@
     </div>
 </div>
 
-<!-- Modal -->
 <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
     </div>
@@ -44,23 +43,21 @@
 
 @section Scripts {
     <script>
-        // Ładowanie formularza dla Create/Edit
         $(document).on("click", ".create-btn, .edit-btn", function () {
             const url = $(this).data("href");
             $.get(url, function (data) {
-                $("#actionModal .modal-dialog").html(data); // Załaduj formularz do modala
-                $("#actionModal").modal("show"); // Pokaż modal
+                $("#actionModal .modal-dialog").html(data); 
+                $("#actionModal").modal("show"); 
             }).fail(function () {
                 alert("Failed to load the form.");
             });
         });
 
-        // Obsługa kliknięcia przycisku Save dla Create/Edit
         $(document).on("click", "#saveButton", function (e) {
-            e.preventDefault(); // Zapobiegaj domyślnemu zachowaniu przycisku
+            e.preventDefault(); 
 
             const form = $("#createRoleForm");
-            const formData = form.serialize(); // Serializuj dane formularza
+            const formData = form.serialize();
 
             $.ajax({
                 url: '@Url.Action("Action", "Roles", new { area = "Dashboard" })',
@@ -69,8 +66,8 @@
                 success: function (result) {
                     if (result && result.success) {
                         alert("Role saved successfully!");
-                        $("#actionModal").modal("hide"); // Ukryj modal
-                        location.reload(); // Odśwież stronę
+                        $("#actionModal").modal("hide"); 
+                        location.reload(); 
                     } else {
                         $(".errorDiv").html(result.message || "Unknown error occurred.");
                         alert("Error: " + (result.message || "Unknown error."));
@@ -85,7 +82,6 @@
             });
         });
 
-        // Ładowanie formularza dla Delete
         $(document).on("click", ".delete-btn", function () {
             const url = $(this).data("href");
             $.get(url, function (data) {
@@ -96,14 +92,13 @@
             });
         });
 
-        // Obsługa kliknięcia przycisku Delete
         $(document).on("click", "#deleteButton", function (e) {
             e.preventDefault();
 
             const form = $("#roleDeleteForm");
-            const formData = form.serialize(); // Serializuj dane formularza
+            const formData = form.serialize(); 
 
-            console.log("FormData:", formData); // Sprawdź dane przesyłane do serwera
+            console.log("FormData:", formData); 
 
             $.ajax({
                 url: '@Url.Action("Delete", "Roles", new { area = "Dashboard" })',
@@ -113,7 +108,7 @@
                     if (result && result.success) {
                         alert("Role deleted successfully!");
                         $("#actionModal").modal("hide");
-                        location.reload(); // Odśwież stronę
+                        location.reload(); 
                     } else {
                         alert("Error: " + (result.message || "An unknown error occurred."));
                     }

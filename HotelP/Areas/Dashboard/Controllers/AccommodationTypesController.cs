@@ -103,7 +103,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
             catch (Exception ex)
             {
-                // Logowanie szczegółów błędu
                 return Json(new { success = false, message = "Wystąpił błąd podczas zapisywania danych." });
             }
 
@@ -121,16 +120,13 @@ namespace Hotel.Areas.Dashboard.Controllers
         [HttpGet]
         public IActionResult Delete(int ID)
         {
-            // Pobierz rekord z bazy danych na podstawie ID
             var AccommodationType = _AccommodationTypesService.GetAccommodationTypeByID(ID);
 
-            // Jeśli rekord nie istnieje, zwróć komunikat o błędzie
             if (AccommodationType == null)
             {
                 return NotFound("Nie znaleziono typu zakwaterowania o podanym ID.");
             }
 
-            // Przygotuj model do widoku
             var model = new AccommodationTypesActionModel
             {
                 ID = AccommodationType.ID,
@@ -138,7 +134,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 Description = AccommodationType.Description
             };
 
-            // Zwróć widok w formie częściowego widoku (partial view)
             return PartialView("_Delete", model);
         }
 

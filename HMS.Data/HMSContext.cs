@@ -127,7 +127,7 @@ namespace HMS.Data
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<DishPicture>()
     .HasOne(dp => dp.Dish)
-    .WithMany(d => d.DishPictures) // lub .WithMany(d => d.DishPictures) jeśli dodasz nawigację w Dish
+    .WithMany(d => d.DishPictures) 
     .HasForeignKey(dp => dp.DishID)
     .OnDelete(DeleteBehavior.Cascade);
 
@@ -138,7 +138,7 @@ namespace HMS.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // 12. Unikalność w TableReservation
+            
             modelBuilder.Entity<TableReservation>()
                 .HasIndex(tr => new { tr.TableNumber, tr.ReservationDate })
                 .IsUnique();
@@ -146,15 +146,13 @@ namespace HMS.Data
             modelBuilder.Entity<GroupReservation>()
                 .Property(gr => gr.RStatus)
                 .HasConversion<string>()
-                .IsRequired(); // o ile chcesz, żeby Status zawsze był wypełniony
+                .IsRequired(); 
 
-            // 2) PaymentMethod zapisywany jako string
+          
             modelBuilder.Entity<GroupReservation>()
                 .Property(gr => gr.PaymentMethod)
-                .HasConversion<string>(); // PaymentMethod? -> string
+                .HasConversion<string>(); 
 
-            // 3) Pola typu int – wartości domyślne, np. 0
-            // (jeśli chcesz, tak jak w Reservation AdultCount jest domyślnie 1)
             modelBuilder.Entity<GroupReservation>()
                 .Property(gr => gr.AdultCount)
                 .HasDefaultValue(1);
@@ -163,7 +161,7 @@ namespace HMS.Data
                 .Property(gr => gr.ChildrenCount)
                 .HasDefaultValue(0);
 
-            // Pola do posiłków (wszystkie int) – też 0:
+         
             modelBuilder.Entity<GroupReservation>()
                 .Property(gr => gr.BreakfastAdults)
                 .HasDefaultValue(0);
@@ -190,10 +188,10 @@ namespace HMS.Data
         .HasForeignKey(grr => grr.GroupReservationID)
         .OnDelete(DeleteBehavior.Cascade);
 
-            // Relacja 1 -> wiele: Room -> GroupReservationRoom
+          
             modelBuilder.Entity<GroupReservationRoom>()
                 .HasOne(grr => grr.Room)
-                .WithMany() // (chyba, że w Room mamy nawigację)
+                .WithMany() 
                 .HasForeignKey(grr => grr.RoomID)
                 .OnDelete(DeleteBehavior.Restrict);
         }

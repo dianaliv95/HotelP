@@ -32,7 +32,7 @@ namespace HMS.Services
 		// Sprawdzenie dostępności pokoju w zadanym zakresie
 		public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime fromDate, DateTime toDate)
 		{
-			// 1) Ignoruj, jeśli pokój jest zablokowany
+			// 1) Ignoruje, jeśli pokój jest zablokowany
 			var room = await _context.Rooms.FindAsync(roomId);
 			if (room == null) return false;
 			if (room.IsBlocked && room.BlockedUntil.HasValue && room.BlockedUntil >= fromDate)
@@ -41,9 +41,7 @@ namespace HMS.Services
 				return false;
 			}
 
-			// 2) Sprawdź, czy istnieje inna rezerwacja w przedziale (kolizja)
-			// Kolizja => [existing.DateFrom, existing.DateTo) nakłada się na [fromDate, toDate)
-			// Condition => (existing.DateFrom < toDate) && (existing.DateTo > fromDate)
+			
 			bool anyCollisions = await _context.Reservations.AnyAsync(r =>
 				r.RoomID == roomId &&
 				r.DateFrom < toDate &&
@@ -64,7 +62,7 @@ namespace HMS.Services
         }
 
 
-        // Oblicz cenę – gdy mamy w pełni wczytaną Reservation
+        // Obliczanie cenę – gdy mamy w pełni wczytaną Reservation
         public decimal CalculateTotalPrice(Reservation reservation)
         {
             if (reservation.Room == null)
@@ -90,7 +88,7 @@ namespace HMS.Services
             return total;
         }
 
-        // Oblicz cenę – gdy mamy Room, liczbę nocy i tymczasowy obiekt Reservation 
+        // Obliczanie ceny – gdy mamy Room, liczbę nocy i tymczasowy obiekt Reservation 
         // (np. w AJAX)
         public decimal CalculateTotalPrice(Room room, int numberOfNights, Reservation reservation)
         {

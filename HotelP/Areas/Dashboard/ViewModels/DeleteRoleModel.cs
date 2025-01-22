@@ -1,4 +1,4 @@
-﻿// File: ViewModels/DeleteRoleModel.cs
+﻿
 using System.ComponentModel.DataAnnotations;
 
 namespace Hotel.Areas.Dashboard.ViewModels

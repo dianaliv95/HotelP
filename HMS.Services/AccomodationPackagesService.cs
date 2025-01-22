@@ -20,7 +20,6 @@ namespace HMS.Services
             _logger = logger;
         }
 
-        // 1) Zwraca wszystkie pakiety (asynchronicznie)
         public async Task<List<AccommodationPackage>> GetAllAccommodationPackagesAsync()
         {
             return await _context.AccommodationPackages
@@ -30,7 +29,6 @@ namespace HMS.Services
         }
 
 
-        // 2) Zwraca pakiety po typie (asynchronicznie)
         public async Task<List<AccommodationPackage>> GetAllAccommodationPackagesByAccommodationTypeAsync(int accommodationTypeID)
         {
             return await _context.AccommodationPackages
@@ -38,7 +36,6 @@ namespace HMS.Services
                                  .ToListAsync();
         }
 
-        // 3) Wyszukiwarka + stronicowanie (synchronicznie)
         public List<AccommodationPackage> SearchAccommodationPackages(string searchTerm, int? accommodationTypeID, int page, int recordSize)
         {
             // Zabezpieczenie, żeby nie wprowadzić np. page=0
@@ -59,7 +56,7 @@ namespace HMS.Services
                 query = query.Where(p => p.AccommodationTypeID == accommodationTypeID.Value);
             }
 
-            // stronicowanie
+            
             var skip = (page - 1) * recordSize;
             return query.OrderBy(x => x.AccommodationTypeID)
                         .Skip(skip)
@@ -67,7 +64,6 @@ namespace HMS.Services
                         .ToList();
         }
 
-        // 4) Zliczenie wszystkich rekordów dla wyszukiwarki
         public int SearchAccommodationPackagesCount(string searchTerm, int? accommodationTypeID)
         {
             var query = _context.AccommodationPackages
@@ -129,18 +125,18 @@ namespace HMS.Services
                     return false;
                 }
 
-                // 1) Odfiltruj tylko te obrazki, które istnieją w bazie (ID > 0).
+                // 1) Odfiltruje tylko te obrazki, które istnieją w bazie (ID > 0).
                 var oldPictures = existingPackage.AccomodationPackagePictures
                     .Where(p => p.ID > 0)
                     .ToList();
 
-                // 2) Usuń stare, które faktycznie istniały w bazie.
+                // 2) Usuwam stare, które faktycznie istniały w bazie.
                 _context.AccommodationPackagePictures.RemoveRange(oldPictures);
 
-                // 3) Nadpisz dane w existingPackage (Name, Fee, itp.)
+                // 3) Nadpisuje dane w existingPackage (Name, Fee, itp.)
                 _context.Entry(existingPackage).CurrentValues.SetValues(package);
 
-                // 4) Dodaj nową listę z package.AccomodationPackagePictures
+                // 4) Dodaje nową listę z package.AccomodationPackagePictures
                 //    (one będą miały ID=0, i EF utworzy je jako INSERT)
                 if (package.AccomodationPackagePictures != null)
                 {
@@ -176,7 +172,7 @@ namespace HMS.Services
             }
         }
 
-        // 9) Dodatkowa metoda do pobrania samych obrazków (jak w starej wersji)
+        // 9) Dodatkowa metoda do pobrania samych obrazków 
         public List<AccommodationPackagePicture> GetPicturesByAccommodationPackageID(int accommodationPackageID)
         {
             var package = _context.AccommodationPackages

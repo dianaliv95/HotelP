@@ -20,7 +20,6 @@ public class AutoReleaseJob
         _logger.LogInformation("AutoReleaseJob: start skanowania pokoi do zwolnienia.");
         var today = DateTime.Today;
 
-        // Znajdź rezerwacje grupowe, które miały ToDate <= today
         var endedReservations = await _context.GroupReservations
             .Include(gr => gr.GroupReservationRooms)
                 .ThenInclude(rr => rr.Room)

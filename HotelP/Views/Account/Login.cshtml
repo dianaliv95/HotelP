@@ -2,10 +2,8 @@
 
 @{
     Layout = "~/Views/Shared/_LoginLayout.cshtml";
-    // lub inny layout, np. "_DashboardLayout.cshtml"
     ViewData["Title"] = "Logowanie";
 
-    // Jeżeli używasz parametru returnUrl:
     var returnUrl = ViewBag.ReturnUrl as string;
 }
 
@@ -21,7 +19,6 @@
                 <form asp-action="Login" method="post">
                     @Html.AntiForgeryToken()
 
-                    <!-- Obsługa returnUrl (opcjonalnie) -->
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
 
                     <div class="mb-3">
@@ -55,8 +52,8 @@
                     </a>
                 </div>
 
-            </div> <!-- card-body -->
-        </div> <!-- card -->
+            </div> 
+        </div> 
 
-    </div> <!-- col-md-6 -->
-</div> <!-- row -->
+    </div> 
+</div> 

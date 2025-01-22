@@ -62,12 +62,10 @@ else
 
             @for (var i = Model.Pager.StartPage; i <= Model.Pager.EndPage; i++)
             {
-                // Najpierw w bloku kodu ustalamy klasę CSS oraz link
                 var cssClass = i == Model.Pager.CurrentPage ? "active" : "";
                 var linkUrl = Url.Action("Index", "AccommodationPackages", new { page = i, searchTerm = Model.SearchTerm, AccommodationTypeID = Model.AccommodationTypeID });
-                var pageText = i.ToString(); // Tekst do wyświetlenia (numer strony)
+                var pageText = i.ToString(); 
 
-                // Następnie generujemy elementy HTML, używając już przygotowanych zmiennych
                 <li class="page-item @cssClass">
                     <a class="page-link" href="@linkUrl">
                         @pageText

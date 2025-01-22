@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;     // dopuszczalne
-using System.ComponentModel.DataAnnotations.Schema; // jeżeli potrzebne
+using System.ComponentModel.DataAnnotations;     
+using System.ComponentModel.DataAnnotations.Schema; 
 
 namespace HMS.Entities
 {
@@ -70,7 +70,7 @@ namespace HMS.Entities
         [Required]
         public string ContactEmail { get; set; } = "";
 
-        // Pola dotyczące posiłków (jak w pojedynczej):
+        
         public int BreakfastAdults { get; set; }
         public int BreakfastChildren { get; set; }
         public int LunchAdults { get; set; }

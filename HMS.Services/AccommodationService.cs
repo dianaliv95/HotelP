@@ -21,23 +21,22 @@ namespace HMS.Services
         }
         public async Task<Accommodation> GetAccommodationByIdAsync(int id)
         {
-            try
-            {
-                return await _context.Accommodations
-        .Include(a => a.AccommodationPackage)
-        .ThenInclude(ap => ap.AccomodationPackagePictures)
-            .ThenInclude(pp => pp.Picture)
-    .Include(a => a.AccommodationPictures)
-        .ThenInclude(ap => ap.Picture)
-    // ewentualnie dalsze Include, jeśli potrzeba
-    .FirstOrDefaultAsync(a => a.ID == id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Błąd podczas pobierania zakwaterowania o ID {ID}.", id);
-                return null;
-            }
-        }
+                    try
+                    {
+                        return await _context.Accommodations
+                .Include(a => a.AccommodationPackage)
+                .ThenInclude(ap => ap.AccomodationPackagePictures)
+                    .ThenInclude(pp => pp.Picture)
+            .Include(a => a.AccommodationPictures)
+                .ThenInclude(ap => ap.Picture)
+            .FirstOrDefaultAsync(a => a.ID == id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Błąd podczas pobierania zakwaterowania o ID {ID}.", id);
+                        return null;
+                    }
+                }
 
         public async Task<List<Accommodation>> GetAllAccommodationsAsync()
         {
@@ -50,7 +49,7 @@ namespace HMS.Services
         public async Task<List<Accommodation>> GetAllAccommodationsByPackageAsync(int accommodationPackageID)
         {
             return await _context.Accommodations
-                                 .Include(a => a.AccommodationPackage)  // ewentualnie dołączamy pakiet, jeśli potrzebne
+                                 .Include(a => a.AccommodationPackage)  
                                  .Where(a => a.AccommodationPackageID == accommodationPackageID)
                                  .ToListAsync();
         }
@@ -59,7 +58,6 @@ namespace HMS.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Dodaj zakwaterowanie
                 _context.Accommodations.Add(accommodation);
                 await _context.SaveChangesAsync();
 
@@ -140,7 +138,7 @@ namespace HMS.Services
         public async Task<List<Accommodation>> SearchAccommodationsAsync(string searchTerm)
         {
             var query = _context.Accommodations
-                .Include(a => a.AccommodationPackage) // Dołącz pakiety
+                .Include(a => a.AccommodationPackage) 
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
@@ -155,7 +153,7 @@ namespace HMS.Services
         public async Task<List<Accommodation>> GetAccommodationsByPackageAsync(int packageId)
         {
             return await _context.Accommodations
-                .Include(a => a.AccommodationPackage) // Dołącz pakiety
+                .Include(a => a.AccommodationPackage) 
                 .Where(a => a.AccommodationPackageID == packageId) // Filtruj po ID pakietu
                 .ToListAsync();
         }
@@ -219,7 +217,6 @@ namespace HMS.Services
             }
         }
 
-        // Dodana metoda: Pobieranie pokoi na podstawie ID zakwaterowania
         public async Task<List<Room>> GetRoomsByAccommodationAsync(int accommodationId)
         {
             try

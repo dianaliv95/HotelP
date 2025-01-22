@@ -29,46 +29,37 @@ namespace Hotel.Areas.Dashboard.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Lista rezerwacji grupowych + opcjonalny filtr po imieniu/nazwisku.
-        /// </summary>
+        
         public async Task<IActionResult> Index(string searchTerm = "")
         {
             var groupReservations = await _groupBookingService.GetAllAsync();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                // Filtrowanie po imieniu/nazwisku
                 groupReservations = groupReservations
                     .Where(r => r.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                              || r.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }
 
-            // Doliczamy cenę (z posiłkami) do każdej rezerwacji
             foreach (var gr in groupReservations)
             {
                 gr.TotalPrice = _groupBookingService.CalculateTotalPrice(gr);
             }
 
             return View(groupReservations);
-            // Widok: /Areas/Dashboard/Views/GroupBookings/Index.cshtml
         }
 
-        /// <summary>
-        /// GET: formularz (partial) tworzenia lub edycji rezerwacji grupowej.
-        /// </summary>
+        
         [HttpGet]
         public async Task<IActionResult> CreateOrEdit(int? id)
         {
             if (id.HasValue)
             {
-                // =============== Tryb edycji ===============
                 var existing = await _groupBookingService.GetByIdAsync(id.Value);
                 if (existing == null)
                     return NotFound("Nie znaleziono rezerwacji grupowej.");
 
-                // Uzupełniamy model
                 var model = new GroupBookingActionModel
                 {
                     ID = existing.ID,
@@ -95,17 +86,14 @@ namespace Hotel.Areas.Dashboard.Controllers
                         .ToList()
                 };
 
-                // Pobierz listę wszystkich pokoi
                 var allRooms = await _roomService.GetAllRoomsAsync();
 
-                // Pokój jest widoczny, jeśli: status=="Available" LUB jest już w rezerwacji
                 var availableRooms = allRooms
                     .Where(r => r.Status == "Available" || model.SelectedRoomIDs.Contains(r.ID))
                     .ToList();
 
                 model.AvailableRooms = availableRooms;
 
-                // Wstępna kalkulacja ceny do wyświetlenia
                 var tempGR = new GroupReservation
                 {
                     FromDate = model.FromDate,
@@ -123,14 +111,12 @@ namespace Hotel.Areas.Dashboard.Controllers
                 };
                 model.TotalPrice = _groupBookingService.CalculateTotalPrice(tempGR);
 
-                // Ustalenie dozwolonych statusów
                 model.AllowedGroupStatuses = DetermineAllowedGroupStatuses(existing);
 
                 return PartialView("_GroupBookingForm", model);
             }
             else
             {
-                // =============== Tryb tworzenia nowej rezerwacji ===============
                 var rooms = await _roomService.GetAllRoomsAsync();
                 var availableRooms = rooms.Where(r => r.Status == "Available").ToList();
 
@@ -150,7 +136,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                     AvailableRooms = availableRooms
                 };
 
-                // Dla nowej rezerwacji -> statusy wstępne
                 model.AllowedGroupStatuses = new List<GroupReservationStatus>
         {
             GroupReservationStatus.PreliminaryReservation,
@@ -162,9 +147,7 @@ namespace Hotel.Areas.Dashboard.Controllers
         }
 
 
-        /// <summary>
-        /// POST: zapis tworzenia / edycji rezerwacji grupowej (AJAX).
-        /// </summary>
+        
         [HttpPost]
         public async Task<IActionResult> CreateOrEdit(GroupBookingActionModel model)
         {
@@ -174,7 +157,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             if (model.SelectedRoomIDs == null || !model.SelectedRoomIDs.Any())
                 return Json(new { success = false, message = "Wybierz przynajmniej jeden pokój." });
 
-            // Tworzymy tymczasowy obiekt GroupReservation do zapisu
             var groupReservation = new GroupReservation
             {
                 ID = model.ID,
@@ -201,12 +183,10 @@ namespace Hotel.Areas.Dashboard.Controllers
 
             if (model.ID > 0)
             {
-                // Edycja
                 var existing = await _groupBookingService.GetByIdAsync(model.ID);
                 if (existing == null)
                     return Json(new { success = false, message = "Rezerwacja nie znaleziona." });
 
-                // (opcjonalnie) sprawdź, czy model.RStatus znajduje się w dozwolonych:
                 var allowed = DetermineAllowedGroupStatuses(existing);
                 if (!allowed.Contains(model.RStatus))
                 {
@@ -223,7 +203,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
             else
             {
-                // Nowa
                 groupReservation.CreatedAt = DateTime.Now;
                 groupReservation.UpdatedAt = DateTime.Now;
 
@@ -243,7 +222,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             var today = DateTime.Today;
             var allowed = new List<GroupReservationStatus>();
 
-            // Wyróżnijmy finalne statusy
             var finalStatuses = new[]
             {
         GroupReservationStatus.NoShow,
@@ -253,13 +231,11 @@ namespace Hotel.Areas.Dashboard.Controllers
 
             if (today < gr.FromDate.Date)
             {
-                // Rezerwacja w przyszłości
                 allowed.Add(GroupReservationStatus.PreliminaryReservation);
                 allowed.Add(GroupReservationStatus.ConfirmedReservation);
             }
             else if (today >= gr.FromDate.Date && today < gr.ToDate.Date)
             {
-                // Rezerwacja w trakcie
                 allowed.Add(GroupReservationStatus.PreliminaryReservation);
                 allowed.Add(GroupReservationStatus.ConfirmedReservation);
                 allowed.Add(GroupReservationStatus.SettledStay);
@@ -267,16 +243,13 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
             else
             {
-                // Dzień wyjazdu lub po
                 allowed.AddRange(finalStatuses);
                 allowed.Add(GroupReservationStatus.UnsettledStay);
             }
 
             return allowed.Distinct().ToList();
         }
-        /// <summary>
-        /// GET: wyświetla partial z potwierdzeniem usunięcia.
-        /// </summary>
+        
         [HttpGet]
         public async Task<IActionResult> DeleteGroupBooking(int id)
         {
@@ -293,9 +266,7 @@ namespace Hotel.Areas.Dashboard.Controllers
             return PartialView("_DeleteGroupBookingModal", model);
         }
 
-        /// <summary>
-        /// POST: potwierdzone usuwanie rezerwacji (AJAX).
-        /// </summary>
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteGroupBookingConfirmed(int id)

@@ -98,16 +98,13 @@
 </div>
 
 
-<!-- Modal wspólny (Create/Edit/Delete) -->
 <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog"></div>
 </div>
 
 @section Scripts {
     <script>
-        //------------------------------------------------------
-        // 1) Ładowanie partiali do modala (Create/Edit/Delete)
-        //------------------------------------------------------
+       
         $(document).on("click", ".create-btn, .edit-btn, .delete-btn", function () {
             const url = $(this).data("href");
             $.get(url, function (html) {
@@ -116,10 +113,7 @@
             });
         });
 
-        //------------------------------------------------------
-        // 2) Obsługa uploadu plików -> #selectPictures
-        //    (delegacja w dokumencie, bo #selectPictures pojawia się w partialu)
-        //------------------------------------------------------
+        
         $(document).on("change", "#selectPictures", function () {
             const files = this.files;
             const formData = new FormData();
@@ -128,7 +122,6 @@
                 formData.append("Picture", files[i]);
             }
 
-            // Upload do Dashboard/UploadPictures
             $.ajax({
                 url: '@Url.Action("UploadPictures", "Dashboard", new { area = "Dashboard" })',
                 type: 'POST',
@@ -136,10 +129,8 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
-                    // res => [{id=..., url=...}, ...]
                     for (let i = 0; i < res.length; i++) {
                         const pic = res[i];
-                        // Kopiujemy #imageTemplate
                         const $tmpl = $("#imageTemplate").clone();
                         $tmpl.removeAttr("id").show();
                         $tmpl.find("img").attr("src", "/images/site/" + pic.url);
@@ -154,17 +145,12 @@
             });
         });
 
-        //------------------------------------------------------
-        // 3) Usunięcie miniatury (klik) -> removeMe()
-        //------------------------------------------------------
+        
         window.removeMe = function (imgElem) {
             $(imgElem).remove();
         };
 
-        //------------------------------------------------------
-        // 4) Klik SAVE (w partialu `_Action.cshtml`)
-        //    - event delegation
-        //------------------------------------------------------
+       
         $(document).on("click", "#saveButton", function () {
             // Zbierz ID-ki w #picturesArea
             const ids = [];
@@ -174,7 +160,6 @@
             });
             $("#pictureIDs").val(ids.join());
 
-            // Serializuj i POST
             const formData = $("#createDishForm").serialize();
             $.post('@Url.Action("Action", "Dishes", new { area = "RestaurantManagement" })',
                 formData,
@@ -192,9 +177,7 @@
                 });
         });
 
-        //------------------------------------------------------
-        // 5) Klik DELETE (w partialu `_Delete.cshtml`)
-        //------------------------------------------------------
+        
         $(document).on("click", "#deleteButton", function () {
             const formData = $("#deleteDishForm").serialize();
             $.post('@Url.Action("Delete", "Dishes", new { area = "RestaurantManagement" })',

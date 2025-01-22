@@ -152,7 +152,6 @@ else
 <div class="modal fade" id="actionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <!-- Tutaj wczytamy partial (formularz) CreateOrEdit przez AJAX -->
         </div>
     </div>
 </div>
@@ -161,7 +160,6 @@ else
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <!-- Tutaj wczytamy partial (usuń) przez AJAX -->
         </div>
     </div>
 </div>
@@ -170,24 +168,13 @@ else
     <script>
         $(document).ready(function () {
 
-            /* ============ PODSTAWOWE ZMIENNE / USTAWIENIA ============ */
-            // Cennik posiłków – takie same stawki, jak w rezerwacji pojedynczej.
+           
             const PRICE_BREAKFAST = 20;
             const PRICE_LUNCH = 25;
             const PRICE_DINNER = 30;
 
-            /*
-             * Funkcja obliczająca łączną kwotę rezerwacji grupowej.
-             * Czyta:
-             *  - daty (FromDate, ToDate)
-             *  - zaznaczone pokoje (SelectedRoomIDs z data-price)
-             *  - liczbę dorosłych/dzieci
-             *  - posiłki (BreakfastAdults, LunchAdults, DinnerAdults, ...).
-             *
-             * Wynik zapisuje do #totalPrice (input albo div).
-             */
+           
             function calculateTotalGroupPrice() {
-                // 1) Pobierz daty i oblicz liczbę nocy
                 const fromDateVal = $("#fromDateInput").val();
                 const toDateVal = $("#toDateInput").val();
 
@@ -202,14 +189,12 @@ else
                     nights = 0;
                 }
 
-                // 2) Przeglądamy zaznaczone pokoje -> sumujemy cenę
                 let total = 0;
                 $("input[name='SelectedRoomIDs']:checked").each(function () {
                     const roomPrice = parseFloat($(this).data("price")) || 0;
                     total += roomPrice * nights;
                 });
 
-                // 3) Posiłki
                 const bA = parseInt($("#breakfastAdultsInput").val() || 0, 10);
                 const bC = parseInt($("#breakfastChildrenInput").val() || 0, 10);
                 const lA = parseInt($("#lunchAdultsInput").val() || 0, 10);
@@ -221,7 +206,6 @@ else
                 total += (lA + lC) * PRICE_LUNCH * nights;
                 total += (dA + dC) * PRICE_DINNER * nights;
 
-                // 4) Wyświetlamy w #totalPrice
                 const formatted = total.toLocaleString("pl-PL", {
                     style: "currency",
                     currency: "PLN"
@@ -230,15 +214,11 @@ else
             }
 
 
-            /*
-             * Funkcja sumująca limity (maxAdults, maxChildren)
-             * i jednocześnie obliczająca cenę w locie.
-             */
+           
             function updateGuestLimitsAndPrice() {
                 let totalMaxAdults = 0;
                 let totalMaxChildren = 0;
 
-                // Zliczamy z checkboxów "SelectedRoomIDs"
                 $("input[name='SelectedRoomIDs']:checked").each(function () {
                     const maxA = parseInt($(this).data("maxadults")) || 0;
                     const maxC = parseInt($(this).data("maxchildren")) || 0;
@@ -246,19 +226,15 @@ else
                     totalMaxChildren += maxC;
                 });
 
-                // Inputy dorosłych i dzieci
                 const $adultCount = $("#adultCountInput");
                 const $childrenCount = $("#childrenCountInput");
 
-                // Minimalna logika, np. jeżeli 0 pokoi – 1 dorosły?
                 if (totalMaxAdults < 1) totalMaxAdults = 1;
                 if (totalMaxChildren < 0) totalMaxChildren = 0;
 
-                // Ustawiamy atrybut max
                 $adultCount.attr("max", totalMaxAdults);
                 $childrenCount.attr("max", totalMaxChildren);
 
-                // Koryguj wartości
                 if (parseInt($adultCount.val()) > totalMaxAdults) {
                     $adultCount.val(totalMaxAdults);
                 }
@@ -266,31 +242,19 @@ else
                     $childrenCount.val(totalMaxChildren);
                 }
 
-                // Następnie obliczamy cenę
                 calculateTotalGroupPrice();
             }
 
 
-            /*
-             * setupGroupBookingForm – wywoływane zawsze po wczytaniu partiala
-             * (Create/ Edit) rezerwacji grupowej.
-             * Podpina obsługę eventów:
-             *    - change w checkboksach pokoi
-             *    - change/keyup w polach posiłków
-             *    - change w datach
-             *    - ewentualnie change w polu "IsPaid"
-             */
+            
             function setupGroupBookingForm() {
 
-                // a) Checkboxy pokoi
                 $(document).on("change", "input[name='SelectedRoomIDs']", updateGuestLimitsAndPrice);
 
-                // b) Daty
                 $("#fromDateInput, #toDateInput").on("change", function () {
                     updateGuestLimitsAndPrice();
                 });
 
-                // c) Pola liczby posiłków
                 $("#breakfastAdultsInput, #breakfastChildrenInput, " +
                     "#lunchAdultsInput, #lunchChildrenInput, " +
                     "#dinnerAdultsInput, #dinnerChildrenInput"
@@ -298,30 +262,24 @@ else
                     updateGuestLimitsAndPrice();
                 });
 
-                // d) Pola AdultCount / ChildrenCount – jeżeli chcesz je wliczać w cenę (opcjonalnie)
                 $("#adultCountInput, #childrenCountInput").on("change keyup", function () {
                     updateGuestLimitsAndPrice();
                 });
 
-                // e) Checkbox "Opłacone" (IsPaid) -> ewentualnie pokaż/ukryj PaymentMethod
                 $("#isPaidCheck").on("change", function () {
                     const isChecked = $(this).is(":checked");
-                    // np. jeżeli isChecked => pokaż select "PaymentMethodSelect", w przeciwnym razie hide
                     if (isChecked) {
                         $("#paymentMethodRow").show();
                     } else {
                         $("#paymentMethodRow").hide();
-                        // Ewentualnie wyczyść wartość
                         $("#paymentMethodSelect").val("");
                     }
                 });
 
-                // f) Uruchamiamy pierwszy raz
                 updateGuestLimitsAndPrice();
             }
 
 
-            /* ============ Obsługa Filtra (searchTerm) ============ */
             $("#searchBtn").click(function () {
                 const term = $("#searchTermInput").val();
                 const url = '@Url.Action("Index", "GroupBookings", new { area = "Dashboard" })'
@@ -329,7 +287,6 @@ else
                 window.location.href = url;
             });
 
-            /* ============ Obsługa "Dodaj" – pobieramy partial do modala ============ */
             $(document).on("click", ".createGroupBtn", function (e) {
                 e.preventDefault();
                 const url = $(this).data("href");
@@ -338,12 +295,10 @@ else
                     $("#actionModal .modal-content").html(html);
                     $("#actionModal").modal("show");
 
-                    // Po wczytaniu formularza -> setup
                     setupGroupBookingForm();
                 });
             });
 
-            /* ============ Obsługa "Edytuj" – analogicznie ============ */
             $(document).on("click", ".editGroupBtn", function (e) {
                 e.preventDefault();
                 const url = $(this).data("href");
@@ -356,7 +311,6 @@ else
                 });
             });
 
-            /* ============ Submit formularza (#groupBookingForm) przez AJAX ============ */
             $(document).on("submit", "#groupBookingForm", function (e) {
                 e.preventDefault();
                 const form = $(this);
@@ -369,9 +323,7 @@ else
                         $("#actionModal").modal("hide");
                         location.reload();
                     } else {
-                        // jeżeli serwer zwróci partial (HTML), to wklejamy go do modala
                         $("#actionModal .modal-content").html(result);
-                        // ponownie setup
                         setupGroupBookingForm();
                     }
                 }).fail(function () {
@@ -379,7 +331,6 @@ else
                 });
             });
 
-            /* ============ Obsługa "Usuń" ============ */
             $(document).on("click", ".deleteGroupBtn", function (e) {
                 e.preventDefault();
                 const url = $(this).data("href");
@@ -390,7 +341,6 @@ else
                 });
             });
 
-            /* ============ Submit formularza usuwania (#deleteGroupBookingForm) ============ */
             $(document).on("submit", "#deleteGroupBookingForm", function (e) {
                 e.preventDefault();
                 const form = $(this);

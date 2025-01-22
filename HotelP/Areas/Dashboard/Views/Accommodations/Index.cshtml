@@ -90,8 +90,8 @@
 
         // Obsługa kliknięcia przycisku "Delete"
         $(document).on("click", ".delete-btn", function () {
-            const reservationId = $(this).data("id"); // Pobierz ID rezerwacji z atrybutu
-            const url = $(this).data("href"); // URL usuwania
+            const reservationId = $(this).data("id"); 
+            const url = $(this).data("href"); 
             $.post(url, { id: reservationId }, function (result) {
                 if (result.success) {
                     alert(result.message);
@@ -105,7 +105,6 @@
         });
 
 
-        // Skrypt dla przycisku "Save" w Create/Edit
         $(document).on("click", "#saveButton", function (e) {
             e.preventDefault();
 
@@ -153,7 +152,6 @@
         });
 
 
-        // Skrypt dla przycisku "Delete" w Delete modal
         $(document).on("click", "#deleteButton", function (e) {
             e.preventDefault();
 

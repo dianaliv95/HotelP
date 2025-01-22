@@ -23,7 +23,7 @@ namespace Hotel.Areas.Dashboard.Controllers
         public RoomsController(HMSContext context,
 RoomService roomService, AccommodationService accommodationService, ILogger<RoomsController> logger)
         {
-            _context = context; // Wstrzykujemy kontekst bazy danych
+            _context = context; 
 
             _roomService = roomService;
             _accommodationService = accommodationService;
@@ -92,7 +92,6 @@ RoomService roomService, AccommodationService accommodationService, ILogger<Room
             }
             catch (Exception ex)
             {
-                // Logowanie błędów
                 return Json(new { success = false, message = "Wystąpił błąd podczas aktualizacji statusu pokoju." });
             }
         }

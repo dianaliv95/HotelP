@@ -28,10 +28,8 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6">
-                <!-- Tutaj wstaw formularz kontaktowy, dane adresowe, mapę Google, itp. -->
                 <h2>Formularz kontaktowy</h2>
                 <form method="post" action="@Url.Action("ContactSubmit", "Home")">
-                    <!-- Pola name="Name", name="Email", name="Message" -->
                     <div class="form-group">
                         <label for="Name">Twoje Imię:</label>
                         <input type="text" id="Name" name="Name" class="form-control" placeholder="Podaj imię" />
@@ -41,7 +39,6 @@
                         <input type="email" id="Email" name="Email" class="form-control" placeholder="Podaj adres email" />
 
                     </div>
-                    <!-- Sekcja do walidacji ogólnej -->
                     <div asp-validation-summary="All" class="text-danger"></div>
                     <div class="form-group">
                         <label for="Message">Treść wiadomości:</label>
@@ -52,7 +49,6 @@
 
             </div>
             <div class="col-md-6">
-                <!-- Jakieś zdjęcie / mapka / dodatkowe informacje -->
                 <h2>Nasze dane kontaktowe</h2>
                 <p>Adres: Hotel Paradise, Mars Bay Settlement, Bachamy</p>
                 <p>Telefon: +1 526382364</p>

@@ -29,7 +29,7 @@ namespace HMS.Entities
         public DateTime? BlockedTo { get; set; }
 
 
-        public bool IsBlocked { get; set; } // np. do blokady administracyjnej
+        public bool IsBlocked { get; set; } // do blokady administracyjnej
 		public DateTime? BlockedUntil { get; set; }
 		[Required]
         public int AccommodationID { get; set; }
@@ -41,7 +41,6 @@ namespace HMS.Entities
         [ForeignKey("AccommodationID")]
         public Accommodation Accommodation { get; set; }
 
-        // Zastąpienie RoomBookings kolekcją Reservations
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

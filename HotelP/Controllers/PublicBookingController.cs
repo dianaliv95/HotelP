@@ -23,10 +23,7 @@ namespace Hotel.Controllers
 			_bookingService = bookingService;
 		}
 
-        /// <summary>
-        /// Wyszukiwanie pokoi dla [checkIn, checkOut], X dorosłych, Y dzieci.
-        /// Sprawdzamy status "Available" + ewentualnie brak kolizji.
-        /// </summary>
+       
         [HttpGet("SearchRooms")]
         public async Task<IActionResult> SearchRooms(
     DateTime? checkIn,
@@ -34,25 +31,20 @@ namespace Hotel.Controllers
     int? adults,
     int? children)
         {
-            // 1) Walidacja podstawowa
             if (!checkIn.HasValue || !checkOut.HasValue)
                 return BadRequest("Brak wymaganych dat przyjazdu/wyjazdu.");
 
             if (checkOut <= checkIn)
                 return BadRequest("Data wyjazdu musi być późniejsza niż data przyjazdu.");
 
-            // 2) Łączna liczba gości
             int totalGuests = (adults ?? 1) + (children ?? 0);
 
-            // 3) Pobierz wszystkie pokoje
             var allRooms = await _roomService.GetAllRoomsAsync();
 
-            // 4) Wybieramy pokoje, które nie są zablokowane
             var candidateRooms = allRooms
                 .Where(r => !r.IsBlocked)
                 .ToList();
 
-            // 5) Sprawdzamy dostępność w danym przedziale
             var freeRooms = new List<Room>();
             foreach (var room in candidateRooms)
             {
@@ -65,11 +57,7 @@ namespace Hotel.Controllers
                     freeRooms.Add(room);
             }
 
-            // UWAGA: Teraz 'freeRooms' zawiera *wszystkie* wolne pokoje,
-            // nawet jeżeli ich MaxGuests jest < totalGuests.
-            // Dzięki temu można później łączyć kilka pokoi dla 5+ osób.
-
-            // 6) Tworzymy model do widoku
+           
             var model = new GroupSearchResultViewModel
             {
                 FromDate = checkIn.Value,
@@ -79,68 +67,11 @@ namespace Hotel.Controllers
                 FoundRooms = freeRooms
             };
 
-            // 7) Wyświetlamy w widoku GroupSearchResults
             return View("GroupSearchResults", model);
         }
 
 
-        /*[HttpGet("CreateReservation")]
-        public IActionResult CreateReservation(
-              DateTime fromDate,
-              DateTime toDate,
-              int adults,
-              int children,
-              int roomId)
-        {
-            var model = new BookingActionModel
-            {
-                FromDate = fromDate,
-                DateTo = toDate,
-                AdultCount = adults,
-                ChildrenCount = children,
-                RoomID = roomId
-            };
-            return View("CreateReservation", model);
-        }
-
-        // 2) POST: /PublicBooking/CreateReservation
-        [HttpPost("CreateReservation")]
-        public async Task<IActionResult> CreateReservation(BookingActionModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("CreateReservation", model);
-            }
-
-            // Tworzymy obiekt Reservation
-            var newReservation = new Reservation
-            {
-                RoomID = (int)model.RoomID,
-                DateFrom = model.FromDate,
-                DateTo = model.DateTo,
-                AdultCount = model.AdultCount,
-                ChildrenCount = model.ChildrenCount,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
-
-            bool success = await _bookingService.CreateReservationAsync(newReservation);
-            if (!success)
-            {
-                ModelState.AddModelError("", "Nie udało się utworzyć rezerwacji (pokój może być już zajęty).");
-                return View("CreateReservation", model);
-            }
-
-            // Przekierowanie do potwierdzenia
-            return RedirectToAction("ConfirmSingle", new { id = newReservation.ID });
-        }
-
-        */
-        /// <summary>
-        /// GET: formularz tworzenia rezerwacji grupowej (na podstawie roomIds).
-        /// </summary>
+       
         [HttpGet]
         public IActionResult CreateGroupReservation(DateTime fromDate, DateTime toDate, int adults, int children, List<int> roomIds)
         {
@@ -153,8 +84,7 @@ namespace Hotel.Controllers
                 SelectedRoomIDs = roomIds
             };
 
-            // Wyświetlasz formularz, w którym user wypełnia dane kontaktowe, 
-            // liczbę posiłków itp.
+           
             return View("CreateGroupReservation", model);
         }
 		[HttpGet("ConfirmSingle")]
@@ -175,13 +105,10 @@ namespace Hotel.Controllers
 			return View("ConfirmGroup", gr);
 		}
 
-		/// <summary>
-		/// POST: Zapis rezerwacji grupowej z publicznego formularza.
-		/// </summary>
+		
 		[HttpPost]
         public async Task<IActionResult> CreateGroupReservation(CreateGroupReservationViewModel model)
         {
-            // Prosta walidacja
             if (model.FromDate < DateTime.Today || model.ToDate <= model.FromDate)
             {
                 ModelState.AddModelError("", "Daty są nieprawidłowe.");
@@ -191,10 +118,8 @@ namespace Hotel.Controllers
                 return View("CreateGroupReservation", model);
             }
 
-            // Numer rezerwacji
             var reservationNumber = Guid.NewGuid().ToString().Substring(0, 8);
 
-			// Tworzymy GroupReservation:
 			var groupRes = new GroupReservation
 			{
 				ReservationNumber = reservationNumber,
@@ -210,7 +135,6 @@ namespace Hotel.Controllers
 				UpdatedAt = DateTime.Now
 			};
 
-			// Tworzymy rezerwację
 			bool saved = await _groupBookingService.CreateAsync(groupRes, model.SelectedRoomIDs);
             if (!saved)
             {
@@ -219,7 +143,6 @@ namespace Hotel.Controllers
             }
             var savedRes = await _groupBookingService.GetByIdAsync(groupRes.ID);
             decimal totalPrice = _groupBookingService.CalculateTotalPrice(savedRes);
-            // Potwierdzenie
             var confirmVM = new GroupReservationConfirmationViewModel
             {
                 ReservationNumber = groupRes.ReservationNumber,

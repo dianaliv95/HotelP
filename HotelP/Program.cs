@@ -1,6 +1,6 @@
 using Hangfire;
 
-using Hangfire.SqlServer;    // <-- to jest kluczowe
+using Hangfire.SqlServer;    
 
 using HMS.Data; // Namespace dla HMSContext
 using HMS.Entities;
@@ -14,7 +14,6 @@ using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1) ConnectionString i DbContext HMSContext ---
 var connectionString = builder.Configuration.GetConnectionString("HMSConnection")
     ?? throw new InvalidOperationException("Connection string 'HMSConnection' not found.");
 
@@ -62,39 +61,30 @@ builder.Services.AddScoped<RoomService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<GroupBookingService>();
 
-// --- 6) (Opcjonalnie) rejestracja AutoReleaseJob, jeœli jej konstruktor czegoœ wymaga ---
 builder.Services.AddTransient<AutoReleaseJob>();
 
-// --- 7) Hangfire: dodanie serwera i konfiguracji ---
 builder.Services.AddHangfire(config =>
 {
-    // Mo¿emy u¿yæ tego samego connectionString
     config.UseSqlServerStorage(connectionString);
 });
-// Dodaj serwer Hangfire
 builder.Services.AddHangfireServer();
 
-// --- 8) Logging do konsoli/debug ---
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// --- 9) Konfiguracja ciasteczek Identity ---
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 var cultureInfo = new CultureInfo("en-US");
-// i w UseRequestLocalization
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
-// Mo¿esz skonfigurowaæ RequestLocalization:
 
 var app = builder.Build();
 
 
-// --- 10) Konfiguracja trybu dev vs. prod ---
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -106,7 +96,6 @@ else
     app.UseHsts();
 }
 
-// --- 11) Œcie¿ki statyczne, HTTPS, routing, uwierzytelnianie ---
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -115,13 +104,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- 12) Hangfire Dashboard (opcjonalnie) i serwer
-//    UWAGA: app.UseHangfireServer() jest ju¿ wywo³ane przez AddHangfireServer();
-//    wiêc tu wystarczy sam Dashboard, jeœli chcesz.
+
 app.UseHangfireDashboard();
 
 
-// Dalej routing, kontrolery itp.
 app.MapControllers();
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
@@ -129,7 +115,6 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedCultures = new[] { cultureInfo },
     SupportedUICultures = new[] { cultureInfo }
 });
-// --- 13) Definicja tras (mapowanie kontrolerów) ---
 app.MapControllerRoute(
     name: "Accomodations",
     pattern: "Accomodations/{action=Index}/{id?}",
@@ -148,11 +133,10 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
-// --- 14) Rejestrowanie zadania cyklicznego Hangfire (po zarejestrowaniu serwera) ---
 RecurringJob.AddOrUpdate<AutoReleaseJob>(
     "auto-release-rooms",
     job => job.RunAsync(),
-    "5 0 * * *"  // codziennie o 00:05
+    "5 0 * * *" 
 );
 
 using (var scope = app.Services.CreateScope())
@@ -163,7 +147,6 @@ using (var scope = app.Services.CreateScope())
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // 1) Tworzymy (jeœli nie istnieje) rolê "GlobalAdmin"
         string adminRoleName = "Admin";
         var adminRoleExists = await roleManager.RoleExistsAsync(adminRoleName);
         if (!adminRoleExists)
@@ -171,33 +154,28 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(adminRoleName));
         }
 
-        // 2) Sprawdzamy, czy jest ju¿ user "admin"
         string adminUsername = "admin@hotel.com";
         string adminPassword = "adminadmin1";
 
-        // Uwaga: je¿eli chcesz u¿yæ Email = "admin@hotel.com" i Username = "admin", to:
-        //  var adminUser = await userManager.FindByNameAsync(adminUsername);
-        // ewentualnie rozejrzyj siê, czy w UserName i Email chcesz to samo
+        
         var adminUser = await userManager.FindByNameAsync(adminUsername);
         if (adminUser == null)
         {
             adminUser = new User
             {
                 UserName = adminUsername,
-                Email = "admin@hotel.com", // albo "admin", jeœli mail nie jest walidowany
-                EmailConfirmed = true      // opcjonalnie oznacz od razu mail jako potwierdzony
+                Email = "admin@hotel.com", 
+                EmailConfirmed = true      
             };
 
             var result = await userManager.CreateAsync(adminUser, adminPassword);
             if (result.Succeeded)
             {
-                // Przypisz go do roli GlobalAdmin
                 await userManager.AddToRoleAsync(adminUser, adminRoleName);
             }
             else
             {
-                // Obs³uga b³êdów tworzenia usera
-                // (np. log do pliku, do Debug)
+                
                 foreach (var error in result.Errors)
                 {
                     Console.WriteLine($"B³¹d tworzenia admina: {error.Description}");
@@ -206,7 +184,6 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            // Mamy usera "admin" – sprawdŸ, czy ma przypisan¹ rolê:
             var rolesForAdmin = await userManager.GetRolesAsync(adminUser);
             if (!rolesForAdmin.Contains(adminRoleName))
             {
@@ -216,10 +193,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        // Logowanie b³êdu
         Console.WriteLine($"[SEED ADMIN ERROR]: {ex.Message}");
     }
 }
 
-// --- 15) Uruchamianie aplikacji ---
 app.Run();

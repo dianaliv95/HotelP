@@ -46,20 +46,17 @@ namespace Hotel.Controllers
 		{
             if (!ModelState.IsValid)
             {
-                // Zwróæ widok z powrotem i wyœwietl b³êdy
                 return View("Contact", model);
             }
 
             try
             {
-				// 1) Zbuduj treœæ maila
 				string body =
 					$"Nowa wiadomoœæ z formularza kontaktowego:\n\n" +
 					$"Imiê: {model.Name}\n" +
 					$"Email: {model.Email}\n" +
 					$"Treœæ: {model.Message}\n";
 
-				// 2) Tworzymy MailMessage
 				var mailMessage = new MailMessage
 				{
 					From = new MailAddress("dianaliv95@gmail.com", "HotelParadise"),
@@ -68,21 +65,17 @@ namespace Hotel.Controllers
 					IsBodyHtml = false
 				};
 
-				// Adres, na który wysy³asz
 				mailMessage.To.Add("dianaliv95@gmail.com");
 
-				// 3) Konfiguracja SMTP
 				using (var smtpClient = new SmtpClient("smtp.gmail.com", 587))
 				{
 					smtpClient.Credentials = new NetworkCredential("dianaliv95@gmail.com", "keofesmtvyqiqprf");
 					smtpClient.EnableSsl = true;
 
-					// 4) Wyœlij
 					smtpClient.Send(mailMessage);
 				}
 
-				// 5) Przechodzimy do nowego widoku z potwierdzeniem
-				//    np. "ContactResult.cshtml", przekazuj¹c model
+				
 				return View("ContactResult", model);
 			}
 			catch (Exception ex)
@@ -99,19 +92,16 @@ namespace Hotel.Controllers
         }
 
 
-        // Oznaczamy metodê jako async i zmieniamy typ zwracany na Task<IActionResult>
         public async Task<IActionResult> Index()
         {
             var model = new HomeViewModel();
 
-            // 1) Dania: kategorie i same dania
             var categories = _categoryService.GetAllCategories();
             model.DishCategories = categories.ToList();
 
             var dishes = _dishesService.GetAllDishes();
             model.AllDishes = dishes;
 
-            // 2) Zakwaterowania i pakiety
             model.AccommodationTypes = _accommodationTypesService.GetAllAccommodationTypes();
             model.AccommodationPackages = await _accommodationPackagesService.GetAllAccommodationPackagesAsync();
 

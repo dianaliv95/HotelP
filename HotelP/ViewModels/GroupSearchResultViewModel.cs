@@ -12,7 +12,6 @@ namespace Hotel.ViewModels
         public int AdultCount { get; set; }
         public int ChildrenCount { get; set; }
 
-        // Zestaw pokoi znaleziony przez backtracking
         public List<Room> FoundRooms { get; set; } = new();
     }
 }

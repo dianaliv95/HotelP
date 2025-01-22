@@ -55,7 +55,6 @@
     </div>
 </div>
 
-<!-- Modal -->
 <div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
     </div>
@@ -64,12 +63,7 @@
 @section Scripts {
     <script>
 
-        //---------------------------------------------------
-        // A. Obsługa przycisków Create / Edit / Delete
-        //---------------------------------------------------
-        // Zależnie od Twojego kodu, przypisz odpowiednie selektory (np. .create-btn, .edit-btn, .delete-btn)
-
-        // Przykład: wczytuje partial do modala przy kliknięciu "Create"
+       
         $(document).on("click", ".create-btn", function (e) {
             e.preventDefault();
             const url = $(this).data("href");
@@ -80,7 +74,6 @@
             });
         });
 
-        // Analogicznie przy "Edit"
         $(document).on("click", ".edit-btn", function (e) {
             e.preventDefault();
             const url = $(this).data("href");
@@ -91,7 +84,6 @@
             });
         });
 
-        // Analogicznie przy "Delete"
         $(document).on("click", ".delete-btn", function (e) {
             e.preventDefault();
             const url = $(this).data("href");
@@ -102,7 +94,6 @@
             });
         });
 
-        // Obsługa potwierdzenia usunięcia (przycisk "Delete" wewnątrz modala)
         $(document).on("click", "#deleteButton", function (e) {
             e.preventDefault();
             const formData = $("#deleteAccommodationPackagesForm").serialize();
@@ -130,9 +121,7 @@
         });
 
 
-        //---------------------------------------------------
-        // B. Upload plików (#selectPictures) -> Dashboard/UploadPictures
-        //---------------------------------------------------
+       
         $(document).on("change", "#selectPictures", function () {
             console.log("Zmiana pliku w input#selectPictures. Pliki:", this.files);
 
@@ -141,7 +130,6 @@
 
             for (var i = 0; i < pictures.length; i++) {
                 console.log("Dodaję do formData plik:", pictures[i].name);
-                // Klucz "Picture" -> [FromForm] List<IFormFile> Picture w kontrolerze
                 formData.append("Picture", pictures[i]);
             }
 
@@ -155,22 +143,18 @@
                 .done(function (response) {
                     console.log("== Odpowiedź serwera (UploadPictures) ==", response);
 
-                    // Zakładam, że response to tablica obiektów: [{ id=..., url=... }, ...]
                     for (var i = 0; i < response.length; i++) {
                         var pic = response[i];
                         console.log("Dodaję #picturesArea obrazek o ID =", pic.id, ", url =", pic.url);
 
-                        // W partialu `_Action.cshtml` powinieneś mieć <div id="imageTemplate" style="display:none;"> z <img>
-                        // Tworzymy klona:
+                        
                         var $template = $("#imageTemplate").clone();
                         $template.removeAttr("id");
                         $template.show();
 
-                        // Ustawiamy src, data-id, itp.
                         $template.find("img").attr("src", "/images/site/" + pic.url);
                         $template.find("img").attr("data-id", pic.id);
 
-                        // Doklejamy do #picturesArea
                         $("#picturesArea").append($template.html());
                     }
                 })
@@ -184,14 +168,12 @@
         });
 
 
-        //---------------------------------------------------
-        // C. Kliknięcie przycisku #saveButton -> AccommodationPackages/Action
-        //---------------------------------------------------
+       
+
         $(document).on("click", "#saveButton", function (e) {
             e.preventDefault();
             console.log("== Zdarzenie #saveButton kliknięte ==");
 
-            // 1. Zbieramy ID-y obrazków:
             var pictureIDs = [];
             $("#picturesArea img").each(function () {
                 var picID = $(this).attr("data-id");
@@ -201,15 +183,12 @@
                 }
             });
 
-            // 2. Wpisujemy do hidden #pictureIDs
             $("#pictureIDs").val(pictureIDs.join());
             console.log("Ustawiam #pictureIDs =", $("#pictureIDs").val());
 
-            // 3. Serializacja formularza
             var formData = $("#createAccommodationPackagesForm").serialize();
             console.log("Seryjalizacja formularza:\n", formData);
 
-            // 4. AJAX
             $.ajax({
                 url: '@Url.Action("Action", "AccommodationPackages")',
                 type: 'POST',
@@ -237,9 +216,7 @@
         });
 
 
-        //---------------------------------------------------
-        // D. Funkcja removeMe -> usuwanie <img> z #picturesArea
-        //---------------------------------------------------
+        
         window.removeMe = function (element) {
             console.log("Usuwam obrazek z data-id =", $(element).attr("data-id"));
             $(element).remove();

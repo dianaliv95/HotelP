@@ -20,7 +20,7 @@ namespace Hotel.Areas.RestaurantManagement.Components
             List<Category> categories;
             try
             {
-                categories = await _categoryService.GetAllCategoriesAsync(); // Pobierz kategorie asynchronicznie
+                categories = await _categoryService.GetAllCategoriesAsync(); 
             }
             catch (Exception ex)
             {

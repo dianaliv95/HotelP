@@ -42,7 +42,7 @@ namespace HMS.Entities
         [Key]
         public int ID { get; set; }
 
-        // FK do Users (opcjonalne)
+        
         public string? UserID { get; set; }
         [ForeignKey("UserID")]
         public virtual User User { get; set; }
@@ -71,7 +71,7 @@ namespace HMS.Entities
         public int AdultCount { get; set; }
         public int ChildrenCount { get; set; }
 
-        // Nowe pola – ilu dorosłych i dzieci zamawia posiłki
+       
         public int BreakfastAdults { get; set; }
         public int LunchAdults { get; set; }
         public int DinnerAdults { get; set; }
@@ -82,10 +82,7 @@ namespace HMS.Entities
         public Payment Payment { get; set; }
 
 
-        // Jeżeli chcesz definitywnie pozbyć się starych booleanów, usuń je:
-        // public bool Breakfast { get; set; }
-        // public bool Lunch { get; set; }
-        // public bool Dinner { get; set; }
+       
 
         public bool IsPaid { get; set; }
         public PaymentMethod? PaymentMethod { get; set; }
@@ -96,7 +93,7 @@ namespace HMS.Entities
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        // Nowe pola (opcjonalne)
+       
         public string? ContactPhone { get; set; } // Numer kontaktowy
         public string? ContactEmail { get; set; } // Adres e-mail
     }

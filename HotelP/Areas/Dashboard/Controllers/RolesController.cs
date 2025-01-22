@@ -24,7 +24,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             _roleManager = roleManager;
         }
 
-        // GET: Dashboard/Roles
         public async Task<IActionResult> Index(string searchTerm)
         {
             List<RoleDTO> roles;
@@ -47,13 +46,12 @@ namespace Hotel.Areas.Dashboard.Controllers
             return View(model);
         }
 
-        // GET: Dashboard/Roles/Action/{id}
         [HttpGet]
         public async Task<IActionResult> Action(string id)
         {
             var model = new RoleActionModel();
 
-            if (!string.IsNullOrEmpty(id)) // Edycja
+            if (!string.IsNullOrEmpty(id)) 
             {
                 var role = await _roleManager.FindByIdAsync(id);
                 if (role == null) return NotFound();
@@ -62,10 +60,9 @@ namespace Hotel.Areas.Dashboard.Controllers
                 model.Name = role.Name;
             }
 
-            return PartialView("_Action", model); // _Action to widok formularza
+            return PartialView("_Action", model); 
         }
 
-        // POST: Dashboard/Roles/Action
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Action(RoleActionModel model)
@@ -86,7 +83,7 @@ namespace Hotel.Areas.Dashboard.Controllers
 
             IdentityResult result;
 
-            if (string.IsNullOrEmpty(model.ID)) // Tworzenie nowej roli
+            if (string.IsNullOrEmpty(model.ID)) 
             {
                 var role = new IdentityRole
                 {
@@ -94,7 +91,7 @@ namespace Hotel.Areas.Dashboard.Controllers
                 };
                 result = await _roleManager.CreateAsync(role);
             }
-            else // Aktualizacja istniejącej roli
+            else 
             {
                 var role = await _roleManager.FindByIdAsync(model.ID);
                 if (role == null)
@@ -131,7 +128,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             return PartialView("_Delete", model);
         }
 
-        // POST: Dashboard/Roles/Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Delete(DeleteRoleModel model)

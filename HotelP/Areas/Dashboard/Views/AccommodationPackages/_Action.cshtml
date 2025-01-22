@@ -19,10 +19,8 @@
         <form id="createAccommodationPackagesForm">
             @Html.AntiForgeryToken()
 
-            <!-- ID pakietu -->
             <input type="hidden" name="ID" value="@Model.ID" />
 
-            <!-- Pole: AccommodationTypeID -->
             <div class="form-group mb-3">
                 <label class="form-label">Accommodation Type</label>
                 <select class="form-control" name="AccommodationTypeID">
@@ -40,7 +38,6 @@
                 </select>
             </div>
 
-            <!-- Pole: Name -->
             <div class="mb-3">
                 <label for="nameInput" class="form-label">Name</label>
                 <input type="text"
@@ -51,7 +48,6 @@
                        value="@Model.Name" />
             </div>
 
-            <!-- Pole: NoOfRoom -->
             <div class="mb-3">
                 <label for="NoOfRoomInput" class="form-label">No Of Rooms</label>
                 <input type="text"
@@ -62,7 +58,6 @@
                        value="@Model.NoOfRoom" />
             </div>
 
-            <!-- Pole: FeePerNight -->
             <div class="mb-3">
                 <label for="FeePerNightInput" class="form-label">Fee Per Night</label>
                 <input type="text"
@@ -73,7 +68,6 @@
                        value="@Model.FeePerNight" />
             </div>
 
-            <!-- Pole: Pictures (input typu file) -->
             <div class="mb-3">
                 <label class="form-label">Pictures</label>
                 <input id="selectPictures"
@@ -82,11 +76,9 @@
                        type="file"
                        multiple />
 
-                <!-- Ukryte pole do przechowywania ID-ów wczytanych zdjęć -->
                 <input type="hidden" name="PictureIDs" id="pictureIDs" value="" />
             </div>
 
-            <!-- Sekcja podglądu wgranych zdjęć -->
             <div id="picturesArea" class="mb-3">
                 @if (Model.AccommodationPackagePictures != null && Model.AccommodationPackagePictures.Count() > 0)
                 {
@@ -102,7 +94,6 @@
             </div>
         </form>
 
-        <!-- Sekcja błędów -->
         <div class="errorDiv text-danger"></div>
     </div>
 
@@ -117,7 +108,6 @@
 </div>
 
 
-<!-- Szablon "ukryty" do klonowania w JS (opcjonalnie) -->
 <div id="imageTemplate" style="display:none;">
     <img src=""
          class="img-fluid"

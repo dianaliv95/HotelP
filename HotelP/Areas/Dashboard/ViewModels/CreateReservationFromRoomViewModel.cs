@@ -8,7 +8,7 @@ namespace Hotel.Areas.Dashboard.ViewModels
         public int RoomID { get; set; }
         public string RoomName { get; set; }
 
-        public string ReservationNumber { get; set; } // Losowy numer
+        public string ReservationNumber { get; set; } 
 
         [Required]
         public string FirstName { get; set; }

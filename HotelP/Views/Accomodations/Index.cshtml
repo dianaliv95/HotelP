@@ -20,7 +20,6 @@
     </div>
 </aside>
 
-<!-- Sprawdzamy, czy model nie jest pusty i czy są pakiety -->
 @if (Model != null
  && Model.AccommodationPackages != null
  && Model.AccommodationPackages.Any())
@@ -29,7 +28,6 @@
         <div class="container">
             <div class="row">
 
-                <!-- Dropdown z Bootstrap 3 -->
                 <div class="dropdown" style="margin-bottom:20px;">
                     <button class="btn btn-default dropdown-toggle"
                             type="button"
@@ -46,10 +44,10 @@
                         {
                             <li class="@(Model.SelectedAccommodationPackageID == package.ID ? "active" : "")">
                                 <a href="@Url.Action(
-    "Index",            // nazwa akcji
-    "Accomodations",    // nazwa kontrolera (klasa: AccomodationsController)
+    "Index",            
+    "Accomodations",    
     new {
-        area = "",  // wymusza brak area
+        area = "",  
         accommodationTypeID = Model.AccommodationType?.ID,
         accommodationPackageID = package.ID
     })">
@@ -61,7 +59,6 @@
                     </ul>
                 </div>
 
-                <!-- Lista zakwaterowań (Accommodations) -->
                 @if (Model.Accommodations != null && Model.Accommodations.Any())
                 {
                     @foreach (var accommodation in Model.Accommodations)
@@ -109,7 +106,6 @@
                 }
                 else
                 {
-                    <!-- Brak zakwaterowań -->
                     <div class="col-xs-12" style="margin-top:30px;">
                         <div class="alert alert-warning" role="alert">
                             No Accommodation found.
@@ -117,13 +113,12 @@
                     </div>
                 }
 
-            </div> <!-- .row -->
-        </div> <!-- .container -->
-    </div> <!-- #colorlib-rooms -->
+            </div> 
+        </div> 
+    </div>
 }
 else
 {
-    <!-- Gdy brak pakietów albo Model jest pusty -->
     <div class="container">
         <div class="row" style="margin-top:30px;">
             <div class="col-xs-12">

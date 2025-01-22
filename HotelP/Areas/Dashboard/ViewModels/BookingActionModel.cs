@@ -11,13 +11,10 @@ namespace Hotel.Areas.Dashboard.ViewModels
 
         public string ReservationNumber { get; set; }
         [Required]
-        // Pokój
         public int? RoomID { get; set; }
 
-        // Lista pokoi (np. do dropdown)
         public List<Room> Rooms { get; set; } = new List<Room>();
 
-        // Ewentualnie do wyświetlania listy dostępnych pokoi 
         public List<Room> AvailableRooms { get; set; } = new List<Room>();
 
         [Required(ErrorMessage = "Pole 'Imię' jest wymagane.")]
@@ -36,7 +33,6 @@ namespace Hotel.Areas.Dashboard.ViewModels
         [Range(0, 20, ErrorMessage = "Liczba dzieci musi być między 0 a 20.")]
         public int ChildrenCount { get; set; }
 
-        // Liczba dorosłych/dzieci korzystających z posiłków
         [Range(0, 20)]
         public int BreakfastAdults { get; set; }
         [Range(0, 20)]
@@ -58,10 +54,8 @@ namespace Hotel.Areas.Dashboard.ViewModels
 
         public decimal TotalPrice { get; set; }
 
-        // Czas trwania w dniach – można liczyć w locie:
         public int Duration { get; set; }
 
-        // Dla ewentualnego widoku
         public Room Room { get; set; }
         public string? ContactPhone { get; set; } // Numer kontaktowy
         public string? ContactEmail { get; set; } // Adres e-mail

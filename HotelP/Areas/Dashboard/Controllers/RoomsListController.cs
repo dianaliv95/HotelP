@@ -17,14 +17,14 @@ namespace Hotel.Areas.Dashboard.Controllers
     public class RoomsListController : Controller
     {
         private readonly RoomService _roomService;
-        private readonly BookingService _bookingService;         // <--- pojedyncze rezerwacje
-        private readonly GroupBookingService _groupBookingService; // <--- grupowe rezerwacje
+        private readonly BookingService _bookingService;         
+        private readonly GroupBookingService _groupBookingService; 
         private readonly ILogger<RoomsListController> _logger;
 
         public RoomsListController(
             RoomService roomService,
             BookingService bookingService,
-            GroupBookingService groupBookingService,  // wstrzykujemy
+            GroupBookingService groupBookingService, 
             ILogger<RoomsListController> logger)
         {
             _roomService = roomService;
@@ -33,17 +33,11 @@ namespace Hotel.Areas.Dashboard.Controllers
             _logger = logger;
         }
 
-        // ========================================================
-        // =========== (A) Lista pokoi z filtrowaniem =============
-        // ========================================================
-        [HttpGet]
-
-        
+        [HttpGet]        
         public async Task<IActionResult> Index(DateTime? dateFrom, DateTime? dateTo, string status)
         {
             var rooms = await _roomService.GetAllRoomsAsync();
 
-            // DYNAMICZNE SPRAWDZANIE dostępności:
             if (dateFrom.HasValue && dateTo.HasValue)
             {
                 foreach (var r in rooms)
@@ -78,7 +72,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             return View("Index", model);
         }
 
-        // Zmiana statusu pokoju
         [HttpPost]
         public async Task<IActionResult> ChangeStatus(int roomId, string newStatus)
         {
@@ -102,7 +95,7 @@ namespace Hotel.Areas.Dashboard.Controllers
 
             room.BlockedFrom = blockFrom;
             room.BlockedTo = blockTo;
-            room.IsBlocked = true;    // lub zrezygnuj z IsBlocked, jeżeli wystarczą daty
+            room.IsBlocked = true;    
             room.Status = "Blocked";
 
             bool updated = await _roomService.UpdateRoomAsync(room);
@@ -112,7 +105,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             return Json(new { success = true, message = $"Pokój zablokowany od {blockFrom:yyyy-MM-dd} do {blockTo:yyyy-MM-dd}." });
         }
 
-        // (A4) Odblokowanie pokoju
         [HttpPost]
         public async Task<IActionResult> UnblockRoom(int roomId)
         {
@@ -123,7 +115,7 @@ namespace Hotel.Areas.Dashboard.Controllers
             room.BlockedFrom = null;
             room.BlockedTo = null;
             room.IsBlocked = false;
-            room.Status = "Available"; // lub "Available" z bazy
+            room.Status = "Available"; 
 
             bool updated = await _roomService.UpdateRoomAsync(room);
             if (!updated)
@@ -133,17 +125,13 @@ namespace Hotel.Areas.Dashboard.Controllers
         }
 
 
-        // ========================================================
-        // ========== (B) POJEDYNCZA REZERWACJA (Booking) =========
-        // ========================================================
-        // GET: formularz do utworzenia rezerwacji pojedynczej
+       
         [HttpGet]
         public async Task<IActionResult> CreateReservation(int roomId)
         {
             var room = await _roomService.GetRoomByIdAsync(roomId);
             if (room == null) return NotFound("Pokój nie znaleziony.");
 
-            // Model do partiala
             var model = new BookingActionModel
             {
                 RoomID = room.ID,
@@ -157,11 +145,9 @@ namespace Hotel.Areas.Dashboard.Controllers
                 Status = ReservationStatus.PreliminaryReservation
             };
 
-            // partial ~Areas/Dashboard/Views/Bookings/_BookingForm.cshtml
             return PartialView("~/Areas/Dashboard/Views/Bookings/_BookingForm.cshtml", model);
         }
 
-        // POST: tworzenie rezerwacji pojedynczej
         [HttpPost]
         public async Task<IActionResult> CreateReservation(BookingActionModel model)
         {
@@ -178,7 +164,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             if (room == null)
                 return Json(new { success = false, message = "Pokój nie istnieje." });
 
-            // Sprawdzenie limitów
             var accommodation = room.Accommodation;
             if (accommodation == null)
                 return Json(new { success = false, message = "Brak zakwaterowania w pokoju." });
@@ -201,7 +186,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 return Json(new { success = false, message = "Walidacja nie powiodła się", errors });
             }
 
-            // Tworzymy rezerwację
             var newReservation = new Reservation
             {
                 ReservationNumber = model.ReservationNumber,
@@ -226,11 +210,9 @@ namespace Hotel.Areas.Dashboard.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            // Zapis w bazie
             bool result = await _bookingService.CreateReservationAsync(newReservation);
             if (result)
             {
-                // Ustawiamy status pokoju = "Reserved"
                 await _roomService.UpdateRoomStatusAsync(newReservation.RoomID, "Reserved");
                 return Json(new { success = true, message = $"Rezerwacja utworzona! Nr: {model.ReservationNumber}" });
             }
@@ -242,30 +224,11 @@ namespace Hotel.Areas.Dashboard.Controllers
 
 
 
-        // ========================================================
-        // ========= (C) REZERWACJA GRUPOWA (GroupBooking) ========
-        // ========================================================
-        //
-        //  - metody analogiczne do GroupBookingsController:
-        //    (1) Lista (opcjonalna, lub można w ogóle pominąć)
-        //    (2) CreateOrEdit (GET)
-        //    (3) CreateOrEdit (POST)
-        //    (4) Delete (GET)
-        //    (5) DeleteConfirmed (POST)
-        //    …itd.
-        // ========================================================
-
-        /// <summary>
-        /// (C1) Lista rezerwacji GRUPOWYCH – o ile chcesz w tym samym kontrolerze
-        ///       (opcjonalnie).
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GroupIndex(string searchTerm = "")
         {
-            // Lista rezerwacji grupowych
             var groupReservations = await _groupBookingService.GetAllAsync();
 
-            // Filtr
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 groupReservations = groupReservations
@@ -274,26 +237,21 @@ namespace Hotel.Areas.Dashboard.Controllers
                     .ToList();
             }
 
-            // Obliczamy cenę (pokoje + posiłki)
             foreach (var gr in groupReservations)
             {
                 gr.TotalPrice = _groupBookingService.CalculateTotalPrice(gr);
             }
 
-            // (opcjonalnie) inny widok: /Areas/Dashboard/Views/RoomsList/GroupIndex.cshtml
-            // lub /Areas/Dashboard/Views/GroupBookings/Index.cshtml
+          
             return View("GroupIndex", groupReservations);
         }
 
-        /// <summary>
-        /// (C2) GET: formularz tworzenia / edycji rezerwacji GRUPOWEJ
-        /// </summary>
+       
         [HttpGet]
         public async Task<IActionResult> CreateGroupReservation(int? id)
         {
             if (id.HasValue)
             {
-                // EDYCJA
                 var existing = await _groupBookingService.GetByIdAsync(id.Value);
                 if (existing == null) return NotFound("Nie znaleziono rezerwacji grupowej do edycji.");
 
@@ -308,7 +266,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                     AdultCount = existing.AdultCount,
                     ChildrenCount = existing.ChildrenCount,
 
-                    // Posiłki
                     BreakfastAdults = existing.BreakfastAdults,
                     BreakfastChildren = existing.BreakfastChildren,
                     LunchAdults = existing.LunchAdults,
@@ -322,11 +279,9 @@ namespace Hotel.Areas.Dashboard.Controllers
                     ContactPhone = existing.ContactPhone,
                     ContactEmail = existing.ContactEmail,
 
-                    // Pokoje w rezerwacji
                     SelectedRoomIDs = existing.GroupReservationRooms.Select(rr => rr.RoomID).ToList()
                 };
 
-                // Pokoje: te, które są Available lub już w rezerwacji
                 var allRooms = await _roomService.GetAllRoomsAsync();
                 var availableRooms = allRooms
                     .Where(r => r.Status == "Available" || model.SelectedRoomIDs.Contains(r.ID))
@@ -334,7 +289,6 @@ namespace Hotel.Areas.Dashboard.Controllers
 
                 model.AvailableRooms = availableRooms;
 
-                // wstępne obliczenie ceny
                 var tempGR = new GroupReservation
                 {
                     FromDate = model.FromDate,
@@ -352,12 +306,10 @@ namespace Hotel.Areas.Dashboard.Controllers
                 };
                 model.TotalPrice = _groupBookingService.CalculateTotalPrice(tempGR);
 
-                // partial _GroupBookingForm.cshtml
                 return PartialView("~/Areas/Dashboard/Views/GroupBookings/_GroupBookingForm.cshtml", model);
             }
             else
             {
-                // NOWA rezerwacja grupowa
                 var allRooms = await _roomService.GetAllRoomsAsync();
                 var availableRooms = allRooms.Where(r => r.Status == "Available").ToList();
 
@@ -375,9 +327,7 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
         }
 
-        /// <summary>
-        /// (C3) POST: tworzenie / edycja rezerwacji GRUPOWEJ
-        /// </summary>
+        
         [HttpPost]
         public async Task<IActionResult> CreateGroupReservation(GroupBookingActionModel model)
         {
@@ -387,7 +337,6 @@ namespace Hotel.Areas.Dashboard.Controllers
             if (model.SelectedRoomIDs == null || !model.SelectedRoomIDs.Any())
                 return Json(new { success = false, message = "Wybierz przynajmniej jeden pokój dla rezerwacji grupowej." });
 
-            // Budujemy obiekt
             var groupRes = new GroupReservation
             {
                 ID = model.ID,
@@ -415,7 +364,6 @@ namespace Hotel.Areas.Dashboard.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            // Nowa czy edycja?
             if (model.ID > 0)
             {
                 // Edycja
@@ -446,9 +394,7 @@ namespace Hotel.Areas.Dashboard.Controllers
             }
         }
 
-        /// <summary>
-        /// (C4) GET: potwierdzenie usunięcia rezerwacji grupowej
-        /// </summary>
+       
         [HttpGet]
         public async Task<IActionResult> DeleteGroupReservation(int id)
         {
@@ -462,13 +408,10 @@ namespace Hotel.Areas.Dashboard.Controllers
                 FirstName = existing.FirstName,
                 LastName = existing.LastName
             };
-            // partial _DeleteGroupBookingModal.cshtml
             return PartialView("~/Areas/Dashboard/Views/GroupBookings/_DeleteGroupBookingModal.cshtml", model);
         }
 
-        /// <summary>
-        /// (C5) POST: usunięcie rezerwacji grupowej (AJAX)
-        /// </summary>
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteGroupReservationConfirmed(int id)
@@ -485,9 +428,7 @@ namespace Hotel.Areas.Dashboard.Controllers
         }
 
 
-        // ========================================================
-        // (D) Inne akcje lub metody pomocnicze...
-        // ========================================================
+       
        
 
 
@@ -497,12 +438,11 @@ namespace Hotel.Areas.Dashboard.Controllers
         [HttpGet]
         public IActionResult CreateAccommodation()
         {
-            // Przykładowy partial
             var model = new
             {
                 Rooms = new List<RoomViewModel>
                 {
-                    new RoomViewModel() // Domyślnie jeden pokój
+                    new RoomViewModel() 
                 }
             };
             return PartialView("~/Areas/Dashboard/Views/RoomsList/_CreateAccommodationForm.cshtml", model);

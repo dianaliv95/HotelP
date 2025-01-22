@@ -11,7 +11,6 @@
           action="@Url.Action("CreateOrEdit", "Bookings", new { area = "Dashboard" })">
         @Html.AntiForgeryToken()
 
-        <!-- Ukryte pola ID i ReservationNumber -->
         <input type="hidden" name="ID" value="@Model.ID" />
         <input type="hidden" name="ReservationNumber" value="@Model.ReservationNumber" />
 
@@ -46,7 +45,6 @@
                    value="@Model.LastName" required />
         </div>
 
-        <!-- Daty -->
         <div class="mb-3">
             <label>Data od</label>
             <input type="date" class="form-control" name="FromDate"
@@ -59,13 +57,11 @@
                    value="@Model.DateTo.ToString("yyyy-MM-dd")"
                    required />
         </div>
-        <!-- Numer kontaktowy (opcjonalny) -->
         <div class="mb-3">
             <label class="form-label">Numer kontaktowy</label>
             <input type="text" class="form-control" name="ContactPhone" value="@Model.ContactPhone" />
         </div>
 
-        <!-- E-mail (opcjonalny) -->
         <div class="mb-3">
             <label class="form-label">Adres e-mail</label>
             <input type="email" class="form-control" name="ContactEmail" value="@Model.ContactEmail" />
@@ -77,7 +73,6 @@
         <div class="mb-3">
             <label>Liczba dorosłych</label>
             <select class="form-select" name="AdultCount" id="adultCountSelect" required>
-                <!-- Na starcie, jeśli nie wiesz jeszcze, ilu maksymalnie – wypełnisz dynamicznie w JS -->
             </select>
         </div>
 

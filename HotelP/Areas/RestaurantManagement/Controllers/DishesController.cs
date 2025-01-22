@@ -24,7 +24,6 @@ namespace Hotel.Areas.RestaurantManagement.Controllers
             _categoryService = categoryService;
         }
 
-        // GET: Lista dań z wyszukiwaniem
         [HttpGet]
         public IActionResult Index(string searchTerm, int? categoryId)
         {
@@ -44,7 +43,6 @@ namespace Hotel.Areas.RestaurantManagement.Controllers
             return View(model);
         }
 
-        // GET: Tworzenie/edycja
         [HttpGet]
         public IActionResult Action(int? id)
         {
@@ -77,7 +75,6 @@ namespace Hotel.Areas.RestaurantManagement.Controllers
             return PartialView("_Action", model);
         }
 
-        // POST: Zapis tworzenia/edycji
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Action(DishActionModel model)
@@ -87,7 +84,6 @@ namespace Hotel.Areas.RestaurantManagement.Controllers
                 return Json(new { success = false, message = "Nieprawidłowe dane formularza." });
             }
 
-            // Parsujemy PictureIDs
             var pictureIDs = new List<int>();
             if (!string.IsNullOrEmpty(model.PictureIDs))
             {
